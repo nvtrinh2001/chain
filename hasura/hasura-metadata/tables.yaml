@@ -478,7 +478,7 @@
     name: relayer_tx_stat_days
     schema: public
   object_relationships:
-    - name: channelByChannelPort
+    - name: channel_by_channel_port
       using:
         manual_configuration:
           column_mapping:
