@@ -26,7 +26,7 @@ func (k *Keeper) GetAuthority() string {
 	return k.authority
 }
 
-// SetParams sets the x/mint module parameters.
+// SetParams sets the x/globalfee module parameters.
 func (k Keeper) SetParams(ctx sdk.Context, p types.Params) error {
 	if err := p.Validate(); err != nil {
 		return err
@@ -39,7 +39,7 @@ func (k Keeper) SetParams(ctx sdk.Context, p types.Params) error {
 	return nil
 }
 
-// GetParams returns the current x/mint module parameters.
+// GetParams returns the current x/globalfee module parameters.
 func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.ParamsKeyPrefix)

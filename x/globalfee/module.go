@@ -21,7 +21,7 @@ import (
 	"github.com/bandprotocol/chain/v2/x/globalfee/types"
 )
 
-// ConsensusVersion defines the current x/mint module consensus version.
+// ConsensusVersion defines the current x/globalfee module consensus version.
 const ConsensusVersion = 2
 
 var (

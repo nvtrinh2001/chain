@@ -8,12 +8,12 @@ import (
 )
 
 const (
-	ModuleName = "mint"
+	ModuleName = "globalfee"
 )
 
-// Migrate migrates the x/mint module state from the consensus version 1 to
+// Migrate migrates the x/globalfee module state from the consensus version 1 to
 // version 2. Specifically, it takes the parameters that are currently stored
-// and managed by the x/params modules and stores them directly into the x/mint
+// and managed by the x/params modules and stores them directly into the x/globalfee
 // module state.
 func Migrate(
 	ctx sdk.Context,
