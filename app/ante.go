@@ -9,6 +9,7 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 
 	"github.com/bandprotocol/chain/v2/x/globalfee/feechecker"
+	globalfeekeeper "github.com/bandprotocol/chain/v2/x/globalfee/keeper"
 	oraclekeeper "github.com/bandprotocol/chain/v2/x/oracle/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 )
@@ -22,6 +23,7 @@ type HandlerOptions struct {
 	GlobalFeeSubspace paramtypes.Subspace
 	StakingSubspace   paramtypes.Subspace // 0.47 TODO: delete this line
 	StakingKeeper     *stakingkeeper.Keeper
+	GlobalfeeKeeper   *globalfeekeeper.Keeper
 }
 
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
@@ -40,6 +42,9 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	if options.IBCKeeper == nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrLogic, "IBC keeper is required for AnteHandler")
 	}
+	if options.GlobalfeeKeeper == nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrLogic, "Globalfee keeper is required for AnteHandler")
+	}
 
 	sigGasConsumer := options.SigGasConsumer
 	if sigGasConsumer == nil {
@@ -53,7 +58,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 
 		feeChecker := feechecker.NewFeeChecker(
 			options.OracleKeeper,
-			options.GlobalFeeSubspace,
+			options.GlobalfeeKeeper,
 			options.StakingKeeper,
 		)
 		options.TxFeeChecker = feeChecker.CheckTxFeeWithMinGasPrices

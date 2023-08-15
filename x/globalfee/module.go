@@ -3,6 +3,7 @@ package globalfee
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -11,13 +12,17 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
 	"github.com/bandprotocol/chain/v2/x/globalfee/client/cli"
+	"github.com/bandprotocol/chain/v2/x/globalfee/exported"
+	"github.com/bandprotocol/chain/v2/x/globalfee/keeper"
 	"github.com/bandprotocol/chain/v2/x/globalfee/types"
 )
+
+// ConsensusVersion defines the current x/mint module consensus version.
+const ConsensusVersion = 2
 
 var (
 	_ module.AppModuleBasic   = AppModuleBasic{}
@@ -55,6 +60,7 @@ func (a AppModuleBasic) ValidateGenesis(
 }
 
 func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	types.RegisterInterfaces(registry)
 }
 
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
@@ -70,20 +76,19 @@ func (a AppModuleBasic) GetQueryCmd() *cobra.Command {
 }
 
 func (a AppModuleBasic) RegisterLegacyAminoCodec(amino *codec.LegacyAmino) {
+	types.RegisterLegacyAminoCodec(amino)
 }
 
 type AppModule struct {
 	AppModuleBasic
-	paramSpace paramstypes.Subspace
+	keeper keeper.Keeper
+	// legacySubspace is used solely for migration of x/params managed parameters
+	legacySubspace exported.Subspace
 }
 
 // NewAppModule constructor
-func NewAppModule(paramSpace paramstypes.Subspace) *AppModule {
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
-	}
-
-	return &AppModule{paramSpace: paramSpace}
+func NewAppModule(keeper keeper.Keeper, ss exported.Subspace) *AppModule {
+	return &AppModule{keeper: keeper, legacySubspace: ss}
 }
 
 func (a AppModule) InitGenesis(
@@ -93,13 +98,13 @@ func (a AppModule) InitGenesis(
 ) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
 	marshaler.MustUnmarshalJSON(message, &genesisState)
-	a.paramSpace.SetParamSet(ctx, &genesisState.Params)
+	a.keeper.SetParams(ctx, genesisState.Params)
 	return nil
 }
 
 func (a AppModule) ExportGenesis(ctx sdk.Context, marshaler codec.JSONCodec) json.RawMessage {
 	var genState types.GenesisState
-	a.paramSpace.GetParamSet(ctx, &genState.Params)
+	genState.Params = a.keeper.GetParams(ctx)
 	return marshaler.MustMarshalJSON(&genState)
 }
 
@@ -119,8 +124,15 @@ func (a AppModule) RegisterInvariants(registry sdk.InvariantRegistry) {
 // 	return nil
 // }
 
-func (a AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterQueryServer(cfg.QueryServer(), NewGrpcQuerier(a.paramSpace))
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	types.RegisterQueryServer(cfg.QueryServer(), keeper.Querier{Keeper: am.keeper})
+
+	m := keeper.NewMigrator(am.keeper, am.legacySubspace)
+
+	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
+		panic(fmt.Sprintf("failed to migrate x/%s from version 1 to 2: %v", types.ModuleName, err))
+	}
 }
 
 func (a AppModule) BeginBlock(context sdk.Context, block abci.RequestBeginBlock) {
@@ -135,5 +147,5 @@ func (a AppModule) EndBlock(context sdk.Context, block abci.RequestEndBlock) []a
 // introduced by the module. To avoid wrong/empty versions, the initial version
 // should be set to 1.
 func (a AppModule) ConsensusVersion() uint64 {
-	return 1
+	return ConsensusVersion
 }
