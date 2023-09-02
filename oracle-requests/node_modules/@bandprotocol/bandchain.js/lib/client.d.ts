@@ -1,0 +1,34 @@
+import { ReferenceData } from './data';
+import { QueryClient } from '../proto/oracle/v1/query_pb_service';
+import { ServiceClient } from '../proto/cosmos/base/tendermint/v1beta1/query_pb_service';
+import { QueryClient as AuthQueryClient } from '../proto/cosmos/auth/v1beta1/query_pb_service';
+import { ServiceClient as TxServiceClient } from '../proto/cosmos/tx/v1beta1/service_pb_service';
+import { QueryClient as QueryAllBalances } from '../proto/cosmos/bank/v1beta1/query_pb_service';
+import { QueryRequestResponse } from '../proto/oracle/v1/query_pb';
+import { GetLatestBlockResponse } from '../proto/cosmos/base/tendermint/v1beta1/query_pb';
+import { TxResponse } from '../proto/cosmos/base/abci/v1beta1/abci_pb';
+import { DataSource, OracleScript } from '../proto/oracle/v1/oracle_pb';
+import { BaseAccount } from '../proto/cosmos/auth/v1beta1/auth_pb';
+import { Coin } from '../proto/cosmos/base/v1beta1/coin_pb';
+export default class Client {
+    queryClient: QueryClient;
+    serviceClient: ServiceClient;
+    authQueryClient: AuthQueryClient;
+    txServiceClient: TxServiceClient;
+    queryAllBalances: QueryAllBalances;
+    constructor(grpcUrl: string);
+    getDataSource(id: number): Promise<DataSource.AsObject>;
+    getOracleScript(id: number): Promise<OracleScript.AsObject>;
+    getRequestById(id: number): Promise<QueryRequestResponse.AsObject>;
+    getReporters(validator: string): Promise<string[]>;
+    getLatestBlock(): Promise<GetLatestBlockResponse.AsObject>;
+    getAccount(address: string): Promise<BaseAccount.AsObject>;
+    getRequestIdByTxHash(txHash: string): Promise<Number[]>;
+    getChainId(): Promise<string>;
+    sendTxSyncMode(txBytes: Uint8Array | string): Promise<TxResponse.AsObject>;
+    sendTxAsyncMode(txBytes: Uint8Array | string): Promise<TxResponse.AsObject>;
+    sendTxBlockMode(txBytes: Uint8Array | string): Promise<TxResponse.AsObject>;
+    getReferenceData(pairs: string[], minCount: number, askCount: number): Promise<ReferenceData[]>;
+    getLatestRequest(oid: number, calldata: string, minCount: number, askCount: number): Promise<QueryRequestResponse.AsObject>;
+    getAllBalances(address: string): Promise<Array<Coin.AsObject>>;
+}
