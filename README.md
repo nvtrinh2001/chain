@@ -122,4 +122,3 @@ We highly encourage participation from the community to help with D3N developmen
 
 [drop as a line]: mailto:connect@bandprotocol.com
 
-Testing
