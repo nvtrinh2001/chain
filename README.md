@@ -121,3 +121,5 @@ BandChain is licensed under the terms of the GPL 3.0 License unless otherwise sp
 We highly encourage participation from the community to help with D3N development. If you are interested in developing with D3N or have suggestion for protocol improvements, please open an issue, submit a pull request, or [drop as a line].
 
 [drop as a line]: mailto:connect@bandprotocol.com
+
+Testing
