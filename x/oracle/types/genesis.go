@@ -7,20 +7,22 @@ import (
 )
 
 // NewGenesisState creates a new GenesisState instanc e
-func NewGenesisState(params Params, dataSources []DataSource, oracleScripts []OracleScript) *GenesisState {
+func NewGenesisState(params Params, dataSources []DataSource, requirementFiles []RequirementFile, oracleScripts []OracleScript) *GenesisState {
 	return &GenesisState{
-		Params:        params,
-		DataSources:   dataSources,
-		OracleScripts: oracleScripts,
+		Params:           params,
+		DataSources:      dataSources,
+		RequirementFiles: requirementFiles,
+		OracleScripts:    oracleScripts,
 	}
 }
 
 // DefaultGenesisState returns the default oracle genesis state.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		Params:        DefaultParams(),
-		DataSources:   []DataSource{},
-		OracleScripts: []OracleScript{},
+		Params:           DefaultParams(),
+		DataSources:      []DataSource{},
+		RequirementFiles: []RequirementFile{},
+		OracleScripts:    []OracleScript{},
 	}
 }
 

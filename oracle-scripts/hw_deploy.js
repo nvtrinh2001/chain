@@ -21,7 +21,7 @@ async function createOracleScript() {
 
   // Setup the transaction's properties
   const chainId = await client.getChainId()
-  const execPath = path.resolve(currentDirectory, 'hello_world/target/wasm32-unknown-unknown/release/hello_world.wasm')
+  const execPath = path.resolve(currentDirectory, 'get_transactions/target/wasm32-unknown-unknown/release/get_transactions.wasm')
   const code = fs.readFileSync(execPath)
 
   let feeCoin = new Coin()
@@ -29,13 +29,13 @@ async function createOracleScript() {
   feeCoin.setAmount('0')
 
   const requestMessage = new Message.MsgCreateOracleScript(
-    'Hello World', // oracle script name
+    'get_transactions', // oracle script name
     code, // oracle script code
     sender, // owner
     sender, // sender
     '', // description
     '{repeat:u64}/{response:string}', // schema
-    'https://ipfs.io/ipfs/QmTCtwJWnRXaifcLERUVnUWNp93FeQiCAxwqVecNYQBbtx' // source code url
+    '' // source code url
   )
 
   // Construct the transaction

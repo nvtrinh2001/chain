@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
-	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -21,11 +20,11 @@ import (
 )
 
 // AddGenesisDataSourceCmd returns add-data-source cobra Command.
-func AddGenesisDataSourceCmd(defaultNodeHome string) *cobra.Command {
+func AddGenesisRequirementFileCmd(defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "add-data-source [name] [description] [owner] [filepath] [fee] [treasury] [requirement-file-id]",
-		Short: "Add a data source to genesis.json",
-		Args:  cobra.ExactArgs(7),
+		Use:   "add-requirement-file [name] [description] [owner] [filepath] [fee] [treasury]",
+		Short: "Add a requirement file to genesis.json",
+		Args:  cobra.ExactArgs(6),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			cdc := clientCtx.Codec
@@ -60,16 +59,8 @@ func AddGenesisDataSourceCmd(defaultNodeHome string) *cobra.Command {
 			}
 
 			oracleGenState := types.GetGenesisStateFromAppState(cdc, appState)
-
-			requirementFileIdInt, err := strconv.Atoi(args[6])
-			if err != nil {
-				fmt.Println("Error:", err)
-				return err
-			}
-			requirementFileId := uint64(requirementFileIdInt)
-
-			oracleGenState.DataSources = append(oracleGenState.DataSources, types.NewDataSource(
-				owner, args[0], args[1], filename, fee, treasury, requirementFileId,
+			oracleGenState.RequirementFiles = append(oracleGenState.RequirementFiles, types.NewRequirementFile(
+				owner, args[0], args[1], filename, fee, treasury,
 			))
 			oracleGenStateBz, err := cdc.MarshalJSON(oracleGenState)
 

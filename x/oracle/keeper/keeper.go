@@ -148,6 +148,26 @@ func (k Keeper) GetNextDataSourceID(ctx sdk.Context) types.DataSourceID {
 	return types.DataSourceID(dataSourceCount + 1)
 }
 
+// SetDataSourceCount sets the number of data source count to the given value.
+func (k Keeper) SetRequirementFileCount(ctx sdk.Context, count uint64) {
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, count)
+	ctx.KVStore(k.storeKey).Set(types.RequirementFileCountStoreKey, bz)
+}
+
+// GetDataSourceCount returns the current number of all data sources ever exist.
+func (k Keeper) GetRequirementFileCount(ctx sdk.Context) uint64 {
+	bz := ctx.KVStore(k.storeKey).Get(types.RequirementFileCountStoreKey)
+	return binary.BigEndian.Uint64(bz)
+}
+
+// GetNextDataSourceID increments and returns the current number of data sources.
+func (k Keeper) GetNextRequirementFileID(ctx sdk.Context) types.RequirementFileID {
+	requirementFileCount := k.GetRequirementFileCount(ctx)
+	k.SetRequirementFileCount(ctx, requirementFileCount+1)
+	return types.RequirementFileID(requirementFileCount + 1)
+}
+
 // SetOracleScriptCount sets the number of oracle script count to the given value.
 func (k Keeper) SetOracleScriptCount(ctx sdk.Context, count uint64) {
 	bz := make([]byte, 8)

@@ -13,6 +13,7 @@ import (
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data *types.GenesisState) {
 	k.SetParams(ctx, data.Params)
 	k.SetDataSourceCount(ctx, 0)
+	k.SetRequirementFileCount(ctx, 0)
 	k.SetOracleScriptCount(ctx, 0)
 	k.SetRequestCount(ctx, 0)
 	k.SetRequestLastExpired(ctx, 0)
@@ -40,8 +41,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data *types.GenesisState) {
 // ExportGenesis returns a GenesisState for a given context and keeper.
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	return &types.GenesisState{
-		Params:        k.GetParams(ctx),
-		DataSources:   k.GetAllDataSources(ctx),
-		OracleScripts: k.GetAllOracleScripts(ctx),
+		Params:           k.GetParams(ctx),
+		DataSources:      k.GetAllDataSources(ctx),
+		RequirementFiles: k.GetAllRequirementFiles(ctx),
+		OracleScripts:    k.GetAllOracleScripts(ctx),
 	}
 }

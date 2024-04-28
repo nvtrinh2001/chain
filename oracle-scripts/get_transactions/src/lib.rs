@@ -11,7 +11,7 @@ struct Output {
     response: String,
 }
 
-const DATA_SOURCE_ID: i64 = 2;
+const DATA_SOURCE_ID: i64 = 1;
 const EXTERNAL_ID: i64 = 0;
 
 #[no_mangle]

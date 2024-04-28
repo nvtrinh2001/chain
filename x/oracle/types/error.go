@@ -8,6 +8,7 @@ var (
 	ErrOwasmCompilation         = sdkerrors.Register(ModuleName, 1, "owasm compilation failed")
 	ErrBadWasmExecution         = sdkerrors.Register(ModuleName, 2, "bad wasm execution")
 	ErrDataSourceNotFound       = sdkerrors.Register(ModuleName, 3, "data source not found")
+	ErrRequirementFileNotFound  = sdkerrors.Register(ModuleName, 46, "requirement file not found")
 	ErrOracleScriptNotFound     = sdkerrors.Register(ModuleName, 4, "oracle script not found")
 	ErrRequestNotFound          = sdkerrors.Register(ModuleName, 5, "request not found")
 	ErrRawRequestNotFound       = sdkerrors.Register(ModuleName, 6, "raw request not found")

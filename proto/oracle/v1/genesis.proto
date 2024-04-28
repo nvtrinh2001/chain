@@ -14,5 +14,7 @@ message GenesisState {
   repeated DataSource data_sources = 2 [ (gogoproto.nullable) = false ];
   // OracleScripts are list of oracle scripts to be installed during genesis
   // phase
-  repeated OracleScript oracle_scripts = 3 [ (gogoproto.nullable) = false ];
+  repeated RequirementFile requirement_files = 3
+      [ (gogoproto.nullable) = false ];
+  repeated OracleScript oracle_scripts = 4 [ (gogoproto.nullable) = false ];
 }

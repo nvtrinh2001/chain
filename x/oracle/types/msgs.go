@@ -9,21 +9,23 @@ import (
 
 // oracle message types
 const (
-	TypeMsgRequestData        = "request"
-	TypeMsgReportData         = "report"
-	TypeMsgCreateDataSource   = "create_data_source"
-	TypeMsgEditDataSource     = "edit_data_source"
-	TypeMsgCreateOracleScript = "create_oracle_script"
-	TypeMsgEditOracleScript   = "edit_oracle_script"
-	TypeMsgActivate           = "activate"
-	TypeMsgAddReporter        = "add_reporter"
-	TypeMsgRemoveReporter     = "remove_reporter"
+	TypeMsgRequestData           = "request"
+	TypeMsgReportData            = "report"
+	TypeMsgCreateDataSource      = "create_data_source"
+	TypeMsgCreateRequirementFile = "create_requirement_file"
+	TypeMsgEditDataSource        = "edit_data_source"
+	TypeMsgCreateOracleScript    = "create_oracle_script"
+	TypeMsgEditOracleScript      = "edit_oracle_script"
+	TypeMsgActivate              = "activate"
+	TypeMsgAddReporter           = "add_reporter"
+	TypeMsgRemoveReporter        = "remove_reporter"
 )
 
 var (
 	_ sdk.Msg = &MsgRequestData{}
 	_ sdk.Msg = &MsgReportData{}
 	_ sdk.Msg = &MsgCreateDataSource{}
+	_ sdk.Msg = &MsgCreateRequirementFile{}
 	_ sdk.Msg = &MsgEditDataSource{}
 	_ sdk.Msg = &MsgCreateOracleScript{}
 	_ sdk.Msg = &MsgEditOracleScript{}
@@ -158,16 +160,17 @@ func (msg MsgReportData) GetSignBytes() []byte {
 
 // NewMsgCreateDataSource creates a new MsgCreateDataSource instance
 func NewMsgCreateDataSource(
-	name, description string, executable []byte, fee sdk.Coins, treasury, owner, sender sdk.AccAddress,
+	name, description string, executable []byte, fee sdk.Coins, treasury, owner, sender sdk.AccAddress, id uint64,
 ) *MsgCreateDataSource {
 	return &MsgCreateDataSource{
-		Name:        name,
-		Description: description,
-		Executable:  executable,
-		Fee:         fee,
-		Treasury:    treasury.String(),
-		Owner:       owner.String(),
-		Sender:      sender.String(),
+		Name:              name,
+		Description:       description,
+		Executable:        executable,
+		Fee:               fee,
+		Treasury:          treasury.String(),
+		Owner:             owner.String(),
+		Sender:            sender.String(),
+		RequirementFileId: id,
 	}
 }
 
@@ -232,6 +235,82 @@ func (msg MsgCreateDataSource) GetSignBytes() []byte {
 	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
 }
 
+// NewMsgCreateRequirementFile creates a new MsgCreateDataSource instance
+func NewMsgCreateRequirementFile(
+	name, description string, executable []byte, fee sdk.Coins, treasury, owner, sender sdk.AccAddress,
+) *MsgCreateRequirementFile {
+	return &MsgCreateRequirementFile{
+		Name:        name,
+		Description: description,
+		Executable:  executable,
+		Fee:         fee,
+		Treasury:    treasury.String(),
+		Owner:       owner.String(),
+		Sender:      sender.String(),
+	}
+}
+
+// Route returns the route of MsgCreateDataSource - "oracle" (sdk.Msg interface).
+func (msg MsgCreateRequirementFile) Route() string { return RouterKey }
+
+// Type returns the message type of MsgCreateDataSource (sdk.Msg interface).
+func (msg MsgCreateRequirementFile) Type() string { return TypeMsgCreateRequirementFile }
+
+// ValidateBasic checks whether the given MsgCreateDataSource instance (sdk.Msg interface).
+func (msg MsgCreateRequirementFile) ValidateBasic() error {
+	treasury, err := sdk.AccAddressFromBech32(msg.Treasury)
+	if err != nil {
+		return err
+	}
+	owner, err := sdk.AccAddressFromBech32(msg.Owner)
+	if err != nil {
+		return err
+	}
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return err
+	}
+	if err := sdk.VerifyAddressFormat(treasury); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "treasury: %s", msg.Treasury)
+	}
+	if err := sdk.VerifyAddressFormat(owner); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "owner: %s", msg.Owner)
+	}
+	if err := sdk.VerifyAddressFormat(sender); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "sender: %s", msg.Sender)
+	}
+	if len(msg.Name) > MaxNameLength {
+		return WrapMaxError(ErrTooLongName, len(msg.Name), MaxNameLength)
+	}
+	if len(msg.Description) > MaxDescriptionLength {
+		return WrapMaxError(ErrTooLongDescription, len(msg.Description), MaxDescriptionLength)
+	}
+	if !msg.Fee.IsValid() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Fee.String())
+	}
+	if len(msg.Executable) == 0 {
+		return ErrEmptyExecutable
+	}
+	if len(msg.Executable) > MaxExecutableSize {
+		return WrapMaxError(ErrTooLargeExecutable, len(msg.Executable), MaxExecutableSize)
+	}
+	if bytes.Equal(msg.Executable, DoNotModifyBytes) {
+		return ErrCreateWithDoNotModify
+	}
+	return nil
+}
+
+// GetSigners returns the required signers for the given MsgCreateDataSource (sdk.Msg interface).
+func (msg MsgCreateRequirementFile) GetSigners() []sdk.AccAddress {
+	sender, _ := sdk.AccAddressFromBech32(msg.Sender)
+	return []sdk.AccAddress{sender}
+}
+
+// GetSignBytes returns raw JSON bytes to be signed by the signers (sdk.Msg interface).
+func (msg MsgCreateRequirementFile) GetSignBytes() []byte {
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
+}
+
 // NewMsgEditDataSource creates a new MsgEditDataSource instance
 func NewMsgEditDataSource(
 	dataSourceID DataSourceID,
@@ -239,17 +318,18 @@ func NewMsgEditDataSource(
 	description string,
 	executable []byte,
 	fee sdk.Coins,
-	treasury, owner, sender sdk.AccAddress,
+	treasury, owner, sender sdk.AccAddress, id uint64,
 ) *MsgEditDataSource {
 	return &MsgEditDataSource{
-		DataSourceID: dataSourceID,
-		Name:         name,
-		Description:  description,
-		Executable:   executable,
-		Fee:          fee,
-		Treasury:     treasury.String(),
-		Owner:        owner.String(),
-		Sender:       sender.String(),
+		DataSourceID:      dataSourceID,
+		Name:              name,
+		Description:       description,
+		Executable:        executable,
+		Fee:               fee,
+		Treasury:          treasury.String(),
+		Owner:             owner.String(),
+		Sender:            sender.String(),
+		RequirementFileId: id,
 	}
 }
 

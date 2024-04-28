@@ -14,6 +14,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgRequestData{}, "oracle/Request", nil)
 	cdc.RegisterConcrete(&MsgReportData{}, "oracle/Report", nil)
 	cdc.RegisterConcrete(&MsgCreateDataSource{}, "oracle/CreateDataSource", nil)
+	cdc.RegisterConcrete(&MsgCreateRequirementFile{}, "oracle/CreateRequirementFile", nil)
 	cdc.RegisterConcrete(&MsgEditDataSource{}, "oracle/EditDataSource", nil)
 	cdc.RegisterConcrete(&MsgCreateOracleScript{}, "oracle/CreateOracleScript", nil)
 	cdc.RegisterConcrete(&MsgEditOracleScript{}, "oracle/EditOracleScript", nil)
@@ -26,6 +27,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgRequestData{},
 		&MsgReportData{},
 		&MsgCreateDataSource{},
+		&MsgCreateRequirementFile{},
 		&MsgEditDataSource{},
 		&MsgCreateOracleScript{},
 		&MsgEditOracleScript{},

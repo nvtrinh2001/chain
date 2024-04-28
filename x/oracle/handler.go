@@ -23,6 +23,9 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *types.MsgCreateDataSource:
 			res, err := msgServer.CreateDataSource(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
+		case *types.MsgCreateRequirementFile:
+			res, err := msgServer.CreateRequirementFile(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
 		case *types.MsgEditDataSource:
 			res, err := msgServer.EditDataSource(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)

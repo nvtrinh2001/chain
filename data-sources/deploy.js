@@ -22,7 +22,7 @@ async function createDataSource() {
 
   // Setup the transaction's properties
   const chainId = await client.getChainId()
-  const execPath = path.resolve(currentDirectory, 'total_supply.py')
+  const execPath = path.resolve(currentDirectory, 'get_transactions.py')
   const file = fs.readFileSync(execPath, 'utf8')
   const executable = Buffer.from(file).toString('base64')
 
@@ -31,7 +31,7 @@ async function createDataSource() {
   feeCoin.setAmount('50000')
 
   const requestMessage = new Message.MsgCreateDataSource(
-    'Total Supply', // Data source name
+    'get transactions', // Data source name
     executable, // Data source executable
     sender, // Treasury address
     sender, // Owner address

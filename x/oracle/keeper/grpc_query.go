@@ -26,9 +26,10 @@ var _ types.QueryServer = Querier{}
 func (k Querier) Counts(c context.Context, req *types.QueryCountsRequest) (*types.QueryCountsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	return &types.QueryCountsResponse{
-			DataSourceCount:   k.GetDataSourceCount(ctx),
-			OracleScriptCount: k.GetOracleScriptCount(ctx),
-			RequestCount:      k.GetRequestCount(ctx)},
+			DataSourceCount:      k.GetDataSourceCount(ctx),
+			RequirementFileCount: k.GetRequirementFileCount(ctx),
+			OracleScriptCount:    k.GetOracleScriptCount(ctx),
+			RequestCount:         k.GetRequestCount(ctx)},
 		nil
 }
 
@@ -58,6 +59,22 @@ func (k Querier) DataSource(
 		return nil, err
 	}
 	return &types.QueryDataSourceResponse{DataSource: &ds}, nil
+}
+
+// DataSource queries data source info for given data source id.
+func (k Querier) RequirementFile(
+	c context.Context,
+	req *types.QueryRequirementFileRequest,
+) (*types.QueryRequirementFileResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	ds, err := k.GetRequirementFile(ctx, types.RequirementFileID(req.RequirementFileId))
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryRequirementFileResponse{RequirementFile: &ds}, nil
 }
 
 // OracleScript queries oracle script info for given oracle script id.

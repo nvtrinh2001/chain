@@ -21,6 +21,10 @@ service Msg {
   rpc CreateDataSource(MsgCreateDataSource)
       returns (MsgCreateDataSourceResponse);
 
+  // CreateDataSource defines a method for creating a new data source.
+  rpc CreateRequirementFile(MsgCreateRequirementFile)
+      returns (MsgCreateRequirementFileResponse);
+
   // EditDataSource defines a method for editing an existing data source.
   rpc EditDataSource(MsgEditDataSource) returns (MsgEditDataSourceResponse);
 
@@ -112,10 +116,42 @@ message MsgCreateDataSource {
   string owner = 6;
   // Sender is the signer of this message.
   string sender = 7;
+
+  uint64 requirement_file_id = 8;
 }
 
 // MsgCreateDataSourceResponse is response data for MsgCreateDataSource message
 message MsgCreateDataSourceResponse {}
+
+// MsgCreateDataSource is a message for creating a new data source.
+message MsgCreateRequirementFile {
+  option (gogoproto.equal) = true;
+  // Name is the name of this data source used for display (optional).
+  string name = 1;
+  // Description is the description of this data source used for display
+  // (optional).
+  string description = 2;
+  // Executable is the content of executable script or binary file to be run by
+  // validators upon execution.
+  bytes executable = 3;
+  // Fee is the data source fee per ask_count that data provider will receive
+  // from requester.
+  repeated cosmos.base.v1beta1.Coin fee = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+  // Treasury is the account address who receive data source fee from requester.
+  string treasury = 5;
+  // Owner is the account address who is allowed to make further changes to the
+  // data source.
+  string owner = 6;
+  // Sender is the signer of this message.
+  string sender = 7;
+}
+
+// MsgCreateRequirementFileResponse is response data for MsgCreateDataSource
+// message
+message MsgCreateRequirementFileResponse {}
 
 // MsgEditDataSource is a message for editing an existing data source.
 message MsgEditDataSource {
@@ -147,6 +183,8 @@ message MsgEditDataSource {
   // Sender is the signer of this message. Must be the current data source's
   // owner.
   string sender = 8;
+
+  uint64 requirement_file_id = 9;
 }
 
 // MsgEditDataSourceResponse is response data for MsgEditDataSource message

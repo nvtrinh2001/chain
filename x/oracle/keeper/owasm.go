@@ -137,6 +137,10 @@ func (k Keeper) PrepareRequest(
 		sdk.NewAttribute(types.AttributeKeyGasUsed, fmt.Sprintf("%d", output.GasUsed)),
 		sdk.NewAttribute(types.AttributeKeyTotalFees, totalFees.String()),
 	)
+
+	// TODO
+	// lock fee limit paid for each validator from here: askcount * limit
+
 	for _, val := range req.RequestedValidators {
 		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyValidator, val))
 	}

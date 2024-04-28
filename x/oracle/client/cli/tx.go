@@ -19,20 +19,21 @@ import (
 )
 
 const (
-	flagName          = "name"
-	flagDescription   = "description"
-	flagScript        = "script"
-	flagOwner         = "owner"
-	flagCalldata      = "calldata"
-	flagClientID      = "client-id"
-	flagSchema        = "schema"
-	flagSourceCodeURL = "url"
-	flagPrepareGas    = "prepare-gas"
-	flagExecuteGas    = "execute-gas"
-	flagFeeLimit      = "fee-limit"
-	flagFee           = "fee"
-	flagTreasury      = "treasury"
-	flagExpiration    = "expiration"
+	flagName              = "name"
+	flagDescription       = "description"
+	flagScript            = "script"
+	flagOwner             = "owner"
+	flagCalldata          = "calldata"
+	flagClientID          = "client-id"
+	flagSchema            = "schema"
+	flagSourceCodeURL     = "url"
+	flagPrepareGas        = "prepare-gas"
+	flagExecuteGas        = "execute-gas"
+	flagFeeLimit          = "fee-limit"
+	flagFee               = "fee"
+	flagRequirementFileId = "requirement-file-id"
+	flagTreasury          = "treasury"
+	flagExpiration        = "expiration"
 )
 
 // NewTxCmd returns the transaction commands for this module
@@ -47,6 +48,8 @@ func NewTxCmd() *cobra.Command {
 	txCmd.AddCommand(
 		GetCmdRequest(),
 		GetCmdCreateDataSource(),
+		GetCmdCreateRequirementFile(),
+		// GetCmdEditRequirementFile(),
 		GetCmdEditDataSource(),
 		GetCmdCreateOracleScript(),
 		GetCmdEditOracleScript(),
@@ -158,13 +161,13 @@ $ %s tx oracle request 1 4 3 --calldata 1234abcdef --client-id cliend-id --fee-l
 // GetCmdCreateDataSource implements the create data source command handler.
 func GetCmdCreateDataSource() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-data-source (--name [name]) (--description [description]) (--script [path-to-script]) (--owner [owner]) (--treasury [treasury]) (--fee [fee])",
+		Use:   "create-data-source (--name [name]) (--description [description]) (--script [path-to-script]) (--owner [owner]) (--treasury [treasury]) (--fee [fee]) (--requirement_file_id [id])",
 		Short: "Create a new data source",
 		Args:  cobra.NoArgs,
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Create a new data source that will be used by oracle scripts.
 Example:
-$ %s tx oracle create-data-source --name coingecko-price --description "The script that queries crypto price from cryptocompare" --script ../price.sh --owner band15d4apf20449ajvwycq8ruaypt7v6d345n9fpt9 --treasury band15d4apf20449ajvwycq8ruaypt7v6d345n9fpt9 --fee 10uband --from mykey
+$ %s tx oracle create-data-source --name coingecko-price --description "The script that queries crypto price from cryptocompare" --script ../price.sh --owner band15d4apf20449ajvwycq8ruaypt7v6d345n9fpt9 --treasury band15d4apf20449ajvwycq8ruaypt7v6d345n9fpt9 --fee 10uband --from mykey --requirement_file_id 1 --chain-id bandchain
 `,
 				version.AppName,
 			),
@@ -222,7 +225,110 @@ $ %s tx oracle create-data-source --name coingecko-price --description "The scri
 				return err
 			}
 
+			requirementFileId, err := cmd.Flags().GetUint64(flagRequirementFileId)
+			if err != nil {
+				return err
+			}
+
 			msg := types.NewMsgCreateDataSource(
+				name,
+				description,
+				execBytes,
+				fee,
+				treasury,
+				owner,
+				clientCtx.GetFromAddress(),
+				requirementFileId,
+			)
+
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	cmd.Flags().String(flagName, "", "Name of this data source")
+	cmd.Flags().String(flagDescription, "", "Description of this data source")
+	cmd.Flags().String(flagScript, "", "Path to this data source script")
+	cmd.Flags().String(flagOwner, "", "Owner of this data source")
+	cmd.Flags().String(flagTreasury, "", "Treasury of this data source")
+	cmd.Flags().String(flagFee, "", "Fee of this data source")
+	cmd.Flags().Uint64(flagRequirementFileId, 0, "requirement file id for this data source")
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// GetCmdCreateRequirementFile implements the create data source command handler.
+func GetCmdCreateRequirementFile() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create-requirement-file (--name [name]) (--description [description]) (--script [path-to-script]) (--owner [owner]) (--treasury [treasury]) (--fee [fee])",
+		Short: "Create a new requirement file",
+		Args:  cobra.NoArgs,
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Create a new requirement file.
+Example:
+$ %s tx oracle create-requirement-file --name python-requirements --description "dependencies for python script" --script ./requirements.txt --owner band15d4apf20449ajvwycq8ruaypt7v6d345n9fpt9 --treasury band15d4apf20449ajvwycq8ruaypt7v6d345n9fpt9 --fee 10uband --from mykey
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			name, err := cmd.Flags().GetString(flagName)
+			if err != nil {
+				return err
+			}
+
+			description, err := cmd.Flags().GetString(flagDescription)
+			if err != nil {
+				return err
+			}
+
+			scriptPath, err := cmd.Flags().GetString(flagScript)
+			if err != nil {
+				return err
+			}
+			execBytes, err := ioutil.ReadFile(scriptPath)
+			if err != nil {
+				return err
+			}
+
+			ownerStr, err := cmd.Flags().GetString(flagOwner)
+			if err != nil {
+				return err
+			}
+			owner, err := sdk.AccAddressFromBech32(ownerStr)
+			if err != nil {
+				return err
+			}
+
+			coinStr, err := cmd.Flags().GetString(flagFee)
+			if err != nil {
+				return err
+			}
+
+			fee, err := sdk.ParseCoinsNormalized(coinStr)
+			if err != nil {
+				return err
+			}
+
+			treasuryStr, err := cmd.Flags().GetString(flagTreasury)
+			if err != nil {
+				return err
+			}
+			treasury, err := sdk.AccAddressFromBech32(treasuryStr)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCreateRequirementFile(
 				name,
 				description,
 				execBytes,
@@ -240,12 +346,12 @@ $ %s tx oracle create-data-source --name coingecko-price --description "The scri
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
-	cmd.Flags().String(flagName, "", "Name of this data source")
-	cmd.Flags().String(flagDescription, "", "Description of this data source")
-	cmd.Flags().String(flagScript, "", "Path to this data source script")
-	cmd.Flags().String(flagOwner, "", "Owner of this data source")
-	cmd.Flags().String(flagTreasury, "", "Treasury of this data source")
-	cmd.Flags().String(flagFee, "", "Fee of this data source")
+	cmd.Flags().String(flagName, "", "Name of this requirement file")
+	cmd.Flags().String(flagDescription, "", "Description of this requirement file")
+	cmd.Flags().String(flagScript, "", "Path to this requirement file")
+	cmd.Flags().String(flagOwner, "", "Owner of this requirement file")
+	cmd.Flags().String(flagTreasury, "", "Treasury of this requirement file")
+	cmd.Flags().String(flagFee, "", "Fee of this requirement file")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -254,7 +360,7 @@ $ %s tx oracle create-data-source --name coingecko-price --description "The scri
 // GetCmdEditDataSource implements the edit data source command handler.
 func GetCmdEditDataSource() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "edit-data-source [id] (--name [name]) (--description [description]) (--script [path-to-script]) (--owner [owner]) (--treasury [treasury]) (--fee [fee])",
+		Use:   "edit-data-source [id] (--name [name]) (--description [description]) (--script [path-to-script]) (--owner [owner]) (--treasury [treasury]) (--fee [fee]) (--requirement-file-id [id])",
 		Short: "Edit data source",
 		Args:  cobra.ExactArgs(1),
 		Long: strings.TrimSpace(
@@ -325,6 +431,10 @@ $ %s tx oracle edit-data-source 1 --name coingecko-price --description The scrip
 			if err != nil {
 				return err
 			}
+			requirementFileId, err := cmd.Flags().GetUint64(flagRequirementFileId)
+			if err != nil {
+				return err
+			}
 
 			msg := types.NewMsgEditDataSource(
 				dataSourceID,
@@ -335,6 +445,7 @@ $ %s tx oracle edit-data-source 1 --name coingecko-price --description The scrip
 				treasury,
 				owner,
 				clientCtx.GetFromAddress(),
+				requirementFileId,
 			)
 
 			err = msg.ValidateBasic()
@@ -351,6 +462,7 @@ $ %s tx oracle edit-data-source 1 --name coingecko-price --description The scrip
 	cmd.Flags().String(flagTreasury, "", "Treasury of this data source")
 	cmd.Flags().String(flagFee, "", "Fee of this data source")
 	cmd.Flags().String(flagOwner, "", "Owner of this data source")
+	cmd.Flags().Uint64(flagRequirementFileId, 0, "Requirement file id of this data source")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

@@ -1,12 +1,7 @@
 import pkg from '@bandprotocol/bandchain.js'
 const { Client, Wallet, Message, Coin, Transaction, Fee } = pkg
 import fs from 'fs'
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import path from 'path';
-
-const currentFilePath = fileURLToPath(import.meta.url);
-const currentDirectory = dirname(currentFilePath);
 
 // Setup the client
 const grpcURL = 'http://127.0.0.1:9091'

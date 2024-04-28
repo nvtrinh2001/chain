@@ -3,6 +3,8 @@ package types
 // DataSourceID is the type-safe unique identifier type for data sources.
 type DataSourceID uint64
 
+type RequirementFileID uint64
+
 // OracleScriptID is the type-safe unique identifier type for oracle scripts.
 type OracleScriptID uint64
 

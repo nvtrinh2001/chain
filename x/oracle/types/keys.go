@@ -38,7 +38,8 @@ var (
 	// PendingResolveListStoreKey is the key that keeps the list of pending-resolve requests.
 	PendingResolveListStoreKey = append(GlobalStoreKeyPrefix, []byte("PendingList")...)
 	// DataSourceCountStoreKey is the key that keeps the total data source count.
-	DataSourceCountStoreKey = append(GlobalStoreKeyPrefix, []byte("DataSourceCount")...)
+	DataSourceCountStoreKey      = append(GlobalStoreKeyPrefix, []byte("DataSourceCount")...)
+	RequirementFileCountStoreKey = append(GlobalStoreKeyPrefix, []byte("RequirementFileCount")...)
 	// OracleScriptCountStoreKey is the key that keeps the total oracle sciprt count.
 	OracleScriptCountStoreKey = append(GlobalStoreKeyPrefix, []byte("OracleScriptCount")...)
 
@@ -54,6 +55,8 @@ var (
 	ValidatorStatusKeyPrefix = []byte{0x05}
 	// ResultStoreKeyPrefix is the prefix for request result store.
 	ResultStoreKeyPrefix = []byte{0xff}
+
+	RequirementFileStoreKeyPrefix = []byte{0x06}
 
 	// PortKey defines the key to store the port ID in store
 	PortKey = []byte{0xf0}
@@ -72,6 +75,10 @@ func ReportStoreKey(requestID RequestID) []byte {
 // DataSourceStoreKey returns the key to retrieve a specific data source from the store.
 func DataSourceStoreKey(dataSourceID DataSourceID) []byte {
 	return append(DataSourceStoreKeyPrefix, sdk.Uint64ToBigEndian(uint64(dataSourceID))...)
+}
+
+func RequirementFileStoreKey(requirementFileID RequirementFileID) []byte {
+	return append(RequirementFileStoreKeyPrefix, sdk.Uint64ToBigEndian(uint64(requirementFileID))...)
 }
 
 // OracleScriptStoreKey returns the key to retrieve a specific oracle script from the store.

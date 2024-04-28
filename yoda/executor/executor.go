@@ -62,8 +62,8 @@ func NewExecutor(executor string) (exec Executor, err error) {
 	if res.Code != 0 {
 		return nil, fmt.Errorf("test program returned nonzero code: %d", res.Code)
 	}
-	if string(res.Output) != "TEST_ARG test-chain-id\n" {
-		return nil, fmt.Errorf("test program returned wrong output: %s", res.Output)
+	if string(res.Output) != "TEST_ARG test-chain-id" {
+		return nil, fmt.Errorf("test program returned wrong output: {%s}", res.Output)
 	}
 	return exec, nil
 }

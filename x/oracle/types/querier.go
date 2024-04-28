@@ -14,6 +14,7 @@ const (
 	QueryCounts           = "counts"
 	QueryData             = "data"
 	QueryDataSources      = "data_sources"
+	QueryRequirementFiles = "requirement_files"
 	QueryOracleScripts    = "oracle_scripts"
 	QueryRequests         = "requests"
 	QueryValidatorStatus  = "validator_status"
@@ -54,9 +55,10 @@ func QueryNotFound(legacyQuerierCdc *codec.LegacyAmino, result interface{}) ([]b
 
 // QueryCountsResult is the struct for the result of query counts.
 type QueryCountsResult struct {
-	DataSourceCount   uint64 `json:"data_source_count"`
-	OracleScriptCount uint64 `json:"oracle_script_count"`
-	RequestCount      uint64 `json:"request_count"`
+	DataSourceCount      uint64 `json:"data_source_count"`
+	RequirementFileCount uint64 `json:"requirement_file_count"`
+	OracleScriptCount    uint64 `json:"oracle_script_count"`
+	RequestCount         uint64 `json:"request_count"`
 }
 
 // QueryRequestResult is the struct for the result of request query.

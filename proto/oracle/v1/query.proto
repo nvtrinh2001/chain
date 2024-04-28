@@ -29,6 +29,13 @@ service Query {
     option (google.api.http).get = "/oracle/v1/data_sources/{data_source_id}";
   }
 
+  // RequirementFile queries data source summary info for given data source id.
+  rpc RequirementFile(QueryRequirementFileRequest)
+      returns (QueryRequirementFileResponse) {
+    option (google.api.http).get =
+        "/oracle/v1/requirement_files/{requirement_file_id}";
+  }
+
   // OracleScript queries oracle script summary info for given oracle script id.
   rpc OracleScript(QueryOracleScriptRequest)
       returns (QueryOracleScriptResponse) {
@@ -104,10 +111,11 @@ message QueryCountsRequest {}
 message QueryCountsResponse {
   // DataSourceCount is total number of data sources available on the chain
   uint64 data_source_count = 1;
+  uint64 requirement_file_count = 2;
   // OracleScriptCount is total number of oracle scripts available on the chain
-  uint64 oracle_script_count = 2;
+  uint64 oracle_script_count = 3;
   // RequestCount is total number of requests submitted to the chain
-  uint64 request_count = 3;
+  uint64 request_count = 4;
 }
 
 // QueryDataRequest is request type for the Query/Data RPC method.
@@ -133,6 +141,20 @@ message QueryDataSourceRequest {
 message QueryDataSourceResponse {
   // DataSource is summary information of a data source
   DataSource data_source = 1;
+}
+
+// QueryRequirementFileRequest is request type for the Query/RequirementFile RPC
+// method.
+message QueryRequirementFileRequest {
+  // RequirementFileID is ID of a requirement file
+  uint64 requirement_file_id = 1;
+}
+
+// QueryRequirementFileResponse is response type for the Query/RequirementFile
+// RPC method.
+message QueryRequirementFileResponse {
+  // RequirementFile is summary information of a data source
+  RequirementFile requirement_file = 1;
 }
 
 // QueryOracleScriptRequest is request type for the Query/OracleScript RPC

@@ -27,6 +27,7 @@ func GetQueryCmd() *cobra.Command {
 		GetQueryCmdParams(),
 		GetQueryCmdCounts(),
 		GetQueryCmdDataSource(),
+		GetQueryCmdRequirementFile(),
 		GetQueryCmdOracleScript(),
 		GetQueryCmdRequest(),
 		GetQueryCmdValidatorStatus(),
@@ -116,6 +117,36 @@ func GetQueryCmdDataSource() *cobra.Command {
 
 	return cmd
 }
+
+// GetQueryCmdDataSource implements the query data source command.
+func GetQueryCmdRequirementFile() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "requirement-file [id]",
+		Short: "Get summary information of a requirement file",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			id, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+			r, err := queryClient.RequirementFile(context.Background(), &types.QueryRequirementFileRequest{RequirementFileId: id})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(r)
+		},
+	}
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
 
 // GetQueryCmdOracleScript implements the query oracle script command.
 func GetQueryCmdOracleScript() *cobra.Command {

@@ -28,6 +28,31 @@ message DataSource {
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
+
+  uint64 requirement_file_id = 7;
+}
+
+// RequirementFile is the data structure for storing data sources in the
+// storage.
+message RequirementFile {
+  option (gogoproto.equal) = true;
+  // Owner is an address of the account who own the data source
+  string owner = 1;
+  // Name is data source name used for display
+  string name = 2;
+  // Description is data source description used for display
+  string description = 3;
+  // Filename is string of file name used as reference for locating
+  // data source file stored in bandchain nodes
+  string filename = 4;
+  // Treasury is the account address who receive data source fee from requester.
+  string treasury = 5;
+  // Fee is the data source fee per ask_count that data provider will receive
+  // from requester.
+  repeated cosmos.base.v1beta1.Coin fee = 6 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 }
 
 // OracleScript is the data structure for storing oracle scripts in the storage.

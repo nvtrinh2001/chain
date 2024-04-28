@@ -85,6 +85,43 @@ func (k msgServer) ReportData(goCtx context.Context, msg *types.MsgReportData) (
 	return &types.MsgReportDataResponse{}, nil
 }
 
+func (k msgServer) CreateRequirementFile(
+	goCtx context.Context,
+	msg *types.MsgCreateRequirementFile,
+) (*types.MsgCreateRequirementFileResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// unzip if it's a zip file
+	if gzip.IsGzipped(msg.Executable) {
+		var err error
+		msg.Executable, err = gzip.Uncompress(msg.Executable, types.MaxExecutableSize)
+		if err != nil {
+			return nil, sdkerrors.Wrapf(types.ErrUncompressionFailed, err.Error())
+		}
+	}
+
+	owner, err := sdk.AccAddressFromBech32(msg.Owner)
+	if err != nil {
+		return nil, err
+	}
+
+	treasury, err := sdk.AccAddressFromBech32(msg.Treasury)
+	if err != nil {
+		return nil, err
+	}
+
+	id := k.AddRequirementFile(ctx, types.NewRequirementFile(
+		owner, msg.Name, msg.Description, k.AddExecutableFile(msg.Executable), msg.Fee, treasury,
+	))
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeCreateRequirementFile,
+		sdk.NewAttribute(types.AttributeKeyID, fmt.Sprintf("%d", id)),
+	))
+
+	return &types.MsgCreateRequirementFileResponse{}, nil
+}
+
 func (k msgServer) CreateDataSource(
 	goCtx context.Context,
 	msg *types.MsgCreateDataSource,
@@ -111,7 +148,7 @@ func (k msgServer) CreateDataSource(
 	}
 
 	id := k.AddDataSource(ctx, types.NewDataSource(
-		owner, msg.Name, msg.Description, k.AddExecutableFile(msg.Executable), msg.Fee, treasury,
+		owner, msg.Name, msg.Description, k.AddExecutableFile(msg.Executable), msg.Fee, treasury, msg.RequirementFileId,
 	))
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -168,7 +205,7 @@ func (k msgServer) EditDataSource(
 
 	// Can safely use MustEdit here, as we already checked that the data source exists above.
 	k.MustEditDataSource(ctx, msg.DataSourceID, types.NewDataSource(
-		newOwner, msg.Name, msg.Description, k.AddExecutableFile(msg.Executable), msg.Fee, treasury,
+		newOwner, msg.Name, msg.Description, k.AddExecutableFile(msg.Executable), msg.Fee, treasury, msg.RequirementFileId,
 	))
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(

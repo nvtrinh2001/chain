@@ -4,6 +4,7 @@ import shlex
 import base64
 import subprocess
 from flask import Flask, request, jsonify
+from threading import Thread
 
 app = Flask(__name__)
 
@@ -11,8 +12,7 @@ HEADERS = {
     "content-type": "application/json",
     "x-lambda": "true",
     "access-control-allow-origin": "*",
-    "access-control-allow-methods": "OPTIONS, POST",
-}
+    "access-control-allow-methods": "OPTIONS, POST", }
 
 runtime_version = "1.0.0"
 
@@ -81,10 +81,12 @@ def execute():
 
         proc.wait(timeout=(timeout / 1000))
         returncode = proc.returncode
-        stdout = proc.stdout.read(MAX_DATA_SIZE).decode()
+        stdout = proc.stdout.read(MAX_DATA_SIZE).strip().decode()
         stderr = proc.stderr.read(MAX_DATA_SIZE).decode()
         success_msg = success(returncode, stdout, stderr, "")
+        print(returncode, stdout, stderr)
         print(success_msg)
+        app.logger.info(success_msg)
         return success_msg
     except OSError:
         return success(126, "", "", "Execution fail")
@@ -93,4 +95,10 @@ def execute():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+    # flask_thread = Thread(target=app.run, kwargs={"host": '0.0.0.0', "port": 7070})
+    
+    # Start the Flask app thread
+    # flask_thread.start()
+
+    app.run(host='0.0.0.0', port=7070, debug=True)
+
