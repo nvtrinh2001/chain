@@ -28,6 +28,7 @@ import (
 
 	v039oracle "github.com/bandprotocol/chain/v2/x/oracle/legacy/v039"
 	oracletypes "github.com/bandprotocol/chain/v2/x/oracle/types"
+	guardiantypes "github.com/bandprotocol/chain/v2/x/guardian/types"
 )
 
 const (
@@ -173,6 +174,9 @@ $ %s migrate /path/to/genesis.json --chain-id=band-laozi --genesis-time=2020-08-
 				})
 			}
 			newGenState[oracletypes.ModuleName] = v043Codec.MustMarshalJSON(oracleGenesis)
+
+			guardianGenesis := guardiantypes.DefaultGenesisState()
+			newGenState[guardiantypes.ModuleName] = v043Codec.MustMarshalJSON(guardianGenesis)
 
 			genDoc.AppState, err = json.Marshal(newGenState)
 			if err != nil {

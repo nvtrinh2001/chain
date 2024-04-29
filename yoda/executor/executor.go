@@ -24,11 +24,15 @@ type ExecResult struct {
 }
 
 type Executor interface {
-	Exec(exec []byte, arg string, env interface{}) (ExecResult, error)
+	Exec(requirementFile []byte, exec []byte, arg string, env interface{}) (ExecResult, error)
 }
 
 var testProgram []byte = []byte(
-	"#!/usr/bin/env python3\nimport os\nimport sys\nprint(sys.argv[1], os.getenv('BAND_CHAIN_ID'))",
+	"import os\nimport sys\nprint(sys.argv[1], os.getenv('BAND_CHAIN_ID'))",
+)
+
+var testRequirementFile []byte = []byte(
+	"requests==2.28.0\nurllib3==1.26.9\nwebsocket-client==1.3.2\nyarl==1.9.2",
 )
 
 // NewExecutor returns executor by name and executor URL
@@ -47,7 +51,7 @@ func NewExecutor(executor string) (exec Executor, err error) {
 	}
 
 	// TODO: Remove hardcode in test execution
-	res, err := exec.Exec(testProgram, "TEST_ARG", map[string]interface{}{
+	res, err := exec.Exec(testRequirementFile, testProgram, "TEST_ARG", map[string]interface{}{
 		"BAND_CHAIN_ID":    "test-chain-id",
 		"BAND_VALIDATOR":   "test-validator",
 		"BAND_REQUEST_ID":  "test-request-id",
@@ -62,7 +66,7 @@ func NewExecutor(executor string) (exec Executor, err error) {
 	if res.Code != 0 {
 		return nil, fmt.Errorf("test program returned nonzero code: %d", res.Code)
 	}
-	if string(res.Output) != "TEST_ARG test-chain-id" {
+	if string(res.Output) != "TEST_ARG test-chain-id\n" {
 		return nil, fmt.Errorf("test program returned wrong output: {%s}", res.Output)
 	}
 	return exec, nil

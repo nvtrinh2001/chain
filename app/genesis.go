@@ -33,6 +33,8 @@ import (
 	ibc "github.com/cosmos/ibc-go/v4/modules/core"
 	ibchost "github.com/cosmos/ibc-go/v4/modules/core/24-host"
 
+	"github.com/bandprotocol/chain/v2/x/guardian"
+	guardiantypes "github.com/bandprotocol/chain/v2/x/guardian/types"
 	"github.com/bandprotocol/chain/v2/x/oracle"
 	oracletypes "github.com/bandprotocol/chain/v2/x/oracle/types"
 )
@@ -88,5 +90,6 @@ func NewDefaultGenesisState() GenesisState {
 		ibctransafertypes.ModuleName: ibctransfer.AppModuleBasic{}.DefaultGenesis(cdc),
 		icatypes.ModuleName:          ica.AppModuleBasic{}.DefaultGenesis(cdc),
 		oracletypes.ModuleName:       oracle.AppModuleBasic{}.DefaultGenesis(cdc),
+		guardiantypes.ModuleName:     guardian.AppModuleBasic{}.DefaultGenesis(cdc),
 	}
 }

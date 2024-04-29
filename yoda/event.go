@@ -10,10 +10,12 @@ import (
 )
 
 type rawRequest struct {
-	dataSourceID   types.DataSourceID
-	dataSourceHash string
-	externalID     types.ExternalID
-	calldata       string
+	dataSourceID        types.DataSourceID
+	dataSourceHash      string
+	externalID          types.ExternalID
+	calldata            string
+	requirementFileID   types.RequirementFileID
+	requirementFileHash string
 }
 
 // GetRawRequests returns the list of all raw data requests in the given log.
@@ -22,6 +24,8 @@ func GetRawRequests(log sdk.ABCIMessageLog) ([]rawRequest, error) {
 	dataSourceHashList := GetEventValues(log, types.EventTypeRawRequest, types.AttributeKeyDataSourceHash)
 	externalIDs := GetEventValues(log, types.EventTypeRawRequest, types.AttributeKeyExternalID)
 	calldataList := GetEventValues(log, types.EventTypeRawRequest, types.AttributeKeyCalldata)
+	requirementFileIDs := GetEventValues(log, types.EventTypeRawRequest, types.AttributeKeyRequirementFileID)
+	requirementFileHashList := GetEventValues(log, types.EventTypeRawRequest, types.AttributeKeyRequirementFileHash)
 
 	if len(dataSourceIDs) != len(externalIDs) {
 		return nil, fmt.Errorf("Inconsistent data source count and external ID count")
@@ -42,11 +46,18 @@ func GetRawRequests(log sdk.ABCIMessageLog) ([]rawRequest, error) {
 			return nil, fmt.Errorf("Failed to parse external id: %s", err.Error())
 		}
 
+		requirementFileID, err := strconv.Atoi(requirementFileIDs[idx])
+		if err != nil {
+			return nil, fmt.Errorf("Failed to parse requirement file id: %s", err.Error())
+		}
+
 		reqs = append(reqs, rawRequest{
-			dataSourceID:   types.DataSourceID(dataSourceID),
-			dataSourceHash: dataSourceHashList[idx],
-			externalID:     types.ExternalID(externalID),
-			calldata:       calldataList[idx],
+			dataSourceID:        types.DataSourceID(dataSourceID),
+			dataSourceHash:      dataSourceHashList[idx],
+			externalID:          types.ExternalID(externalID),
+			calldata:            calldataList[idx],
+			requirementFileID:   types.RequirementFileID(requirementFileID),
+			requirementFileHash: requirementFileHashList[idx],
 		})
 	}
 	return reqs, nil

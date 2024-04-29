@@ -104,6 +104,9 @@ import (
 	bandclient "github.com/bandprotocol/chain/v2/client"
 	bandbank "github.com/bandprotocol/chain/v2/x/bank"
 	bandbankkeeper "github.com/bandprotocol/chain/v2/x/bank/keeper"
+	"github.com/bandprotocol/chain/v2/x/guardian"
+	guardiankeeper "github.com/bandprotocol/chain/v2/x/guardian/keeper"
+	guardiantypes "github.com/bandprotocol/chain/v2/x/guardian/types"
 	"github.com/bandprotocol/chain/v2/x/oracle"
 	bandante "github.com/bandprotocol/chain/v2/x/oracle/ante"
 	oraclekeeper "github.com/bandprotocol/chain/v2/x/oracle/keeper"
@@ -151,10 +154,12 @@ var (
 		vesting.AppModuleBasic{},
 		ica.AppModuleBasic{},
 		oracle.AppModuleBasic{},
+		guardian.AppModuleBasic{},
 	)
 	// module account permissions
 	maccPerms = map[string][]string{
 		authtypes.FeeCollectorName:     nil,
+		guardiantypes.ModuleName:       nil,
 		distrtypes.ModuleName:          nil,
 		icatypes.ModuleName:            nil,
 		minttypes.ModuleName:           {authtypes.Minter},
@@ -204,6 +209,7 @@ type BandApp struct {
 	FeegrantKeeper feegrantkeeper.Keeper
 	AuthzKeeper    authzkeeper.Keeper
 	OracleKeeper   oraclekeeper.Keeper
+	GuardianKeeper guardiankeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -262,6 +268,7 @@ func NewBandApp(
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
 		feegrant.StoreKey, authzkeeper.StoreKey, icahosttypes.StoreKey,
 		oracletypes.StoreKey,
+		guardiantypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -427,6 +434,19 @@ func NewBandApp(
 	oracleModule := oracle.NewAppModule(app.OracleKeeper)
 	oracleIBCModule := oracle.NewIBCModule(app.OracleKeeper)
 
+	app.GuardianKeeper = guardiankeeper.NewKeeper(
+		appCodec,
+		keys[oracletypes.StoreKey],
+		// app.GetSubspace(oracletypes.ModuleName),
+		guardiantypes.ModuleName,
+		app.AccountKeeper,
+		app.BankKeeper,
+		&stakingKeeper,
+		app.DistrKeeper,
+		app.AuthzKeeper,
+	)
+	guardianModule := guardian.NewAppModule(app.GuardianKeeper)
+
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.
@@ -477,6 +497,7 @@ func NewBandApp(
 		transferModule,
 		icaModule,
 		oracleModule,
+		guardianModule,
 	)
 	// NOTE: Oracle module must occur before distr as it takes some fee to distribute to active oracle validators.
 	// NOTE: During begin block slashing happens after distr.BeginBlocker so that there is nothing left
@@ -488,6 +509,7 @@ func NewBandApp(
 		capabilitytypes.ModuleName,
 		minttypes.ModuleName,
 		oracletypes.ModuleName,
+		guardiantypes.ModuleName,
 		distrtypes.ModuleName,
 		slashingtypes.ModuleName,
 		evidencetypes.ModuleName,
@@ -510,6 +532,7 @@ func NewBandApp(
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
 		oracletypes.ModuleName,
+		guardiantypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		ibchost.ModuleName,
 		icatypes.ModuleName,
@@ -553,6 +576,7 @@ func NewBandApp(
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
 		oracletypes.ModuleName,
+		guardiantypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -663,6 +687,9 @@ func (app *BandApp) LoadHeight(height int64) error {
 func (app *BandApp) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
+		if acc == guardiantypes.ModuleName {
+			modAccAddrs[authtypes.NewModuleAddress(acc).String()] = false
+		}
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 	return modAccAddrs

@@ -2,6 +2,7 @@ package executor
 
 import (
 	"encoding/base64"
+	"fmt"
 	"net/url"
 	"time"
 
@@ -24,7 +25,7 @@ type externalExecutionResponse struct {
 	Version    string `json:"version"`
 }
 
-func (e *RestExec) Exec(code []byte, arg string, env interface{}) (ExecResult, error) {
+func (e *RestExec) Exec(requirementFile []byte, code []byte, arg string, env interface{}) (ExecResult, error) {
 	executable := base64.StdEncoding.EncodeToString(code)
 	resp, err := grequests.Post(
 		e.url,
@@ -33,14 +34,17 @@ func (e *RestExec) Exec(code []byte, arg string, env interface{}) (ExecResult, e
 				"Content-Type": "application/json",
 			},
 			JSON: map[string]interface{}{
-				"executable": executable,
-				"calldata":   arg,
-				"timeout":    e.timeout.Milliseconds(),
-				"env":        env,
+				"requirement-file": requirementFile,
+				"executable":       executable,
+				"calldata":         arg,
+				"timeout":          e.timeout.Milliseconds(),
+				"env":              env,
 			},
 			RequestTimeout: e.timeout,
 		},
 	)
+
+	fmt.Println(resp)
 
 	if err != nil {
 		urlErr, ok := err.(*url.Error)

@@ -156,6 +156,10 @@ func (k Keeper) PrepareRequest(
 		if err != nil {
 			return 0, err
 		}
+		requirementFile, err := k.GetRequirementFile(ctx, types.RequirementFileID(ds.RequirementFileId))
+		if err != nil {
+			return 0, err
+		}
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			types.EventTypeRawRequest,
 			sdk.NewAttribute(types.AttributeKeyDataSourceID, fmt.Sprintf("%d", rawReq.DataSourceID)),
@@ -163,6 +167,8 @@ func (k Keeper) PrepareRequest(
 			sdk.NewAttribute(types.AttributeKeyExternalID, fmt.Sprintf("%d", rawReq.ExternalID)),
 			sdk.NewAttribute(types.AttributeKeyCalldata, string(rawReq.Calldata)),
 			sdk.NewAttribute(types.AttributeKeyFee, ds.Fee.String()),
+			sdk.NewAttribute(types.AttributeKeyRequirementFileID, fmt.Sprintf("%d", ds.RequirementFileId)),
+			sdk.NewAttribute(types.AttributeKeyRequirementFileHash, requirementFile.Filename),
 		))
 	}
 	return id, nil

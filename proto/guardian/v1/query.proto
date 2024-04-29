@@ -1,0 +1,34 @@
+syntax = "proto3";
+package guardian.v1;
+
+option go_package = "github.com/bandprotocol/chain/x/guardian/types";
+
+import "google/api/annotations.proto";
+import "guardian/v1/guardian.proto";
+
+// Query defines the gRPC querier service.
+service Query {
+  rpc QueryGuardedFeeList(QueryGuardedFeeListRequest) returns (QueryGuardedFeeListResponse) {
+    option (google.api.http).get = "/guardian/v1/guarded_fees/{account_address}/{status}";
+  }
+  rpc QueryGuardedFee(QueryGuardedFeeRequest) returns (QueryGuardedFeeResponse) { 
+    option (google.api.http).get = "/guardian/v1/guarded_fees/{guarded_fee_id}";
+  }
+}
+
+message QueryGuardedFeeRequest {
+  uint64 guarded_fee_id = 1;
+}
+
+message QueryGuardedFeeResponse {
+  GuardedFee guarded_fee = 1;
+}
+
+message QueryGuardedFeeListRequest {
+  string account_address = 1;
+  STATUS status = 2;
+}
+
+message QueryGuardedFeeListResponse {
+  repeated GuardedFee guarded_fees = 1;
+}

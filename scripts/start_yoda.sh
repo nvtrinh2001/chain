@@ -2,7 +2,7 @@
 
 rm -rf ~/.yoda
 # export EXECUTOR_URL=https://ue3puk0mlg.execute-api.ap-southeast-1.amazonaws.com/default/executor
-export EXECUTOR_URL=http://127.0.0.1:7070/execute
+export EXECUTOR_URL=http://127.0.0.1:5000/execute
 
 # config chain id
 yoda config chain-id bandchain
@@ -11,7 +11,7 @@ yoda config chain-id bandchain
 yoda config validator $(bandd keys show validator -a --bech val --keyring-backend test)
 
 # setup execution endpoint
-yoda config executor "rest:$EXECUTOR_URL?timeout=2000s"
+yoda config executor "rest:$EXECUTOR_URL?timeout=5000s"
 
 # setup broadcast-timeout to yoda config
 yoda config broadcast-timeout "100m"

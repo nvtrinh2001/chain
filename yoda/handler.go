@@ -227,6 +227,19 @@ func handleRawRequest(
 	c.updateHandlingGauge(1)
 	defer c.updateHandlingGauge(-1)
 
+	requirementFile, err := GetExecutable(c, l, req.requirementFileHash)
+	if err != nil {
+		l.Error(":skull: Failed to load requirement file with error: %s", c, err.Error())
+		processingResultCh <- processingResult{
+			rawReport: types.NewRawReport(
+				req.externalID, 255, []byte("FAIL_TO_LOAD_REQUIREMENT_FILE"),
+			),
+			err: err,
+		}
+		return
+
+	}
+
 	exec, err := GetExecutable(c, l, req.dataSourceHash)
 	if err != nil {
 		l.Error(":skull: Failed to load data source with error: %s", c, err.Error())
@@ -239,6 +252,8 @@ func handleRawRequest(
 		return
 	}
 
+	// send requirement file to runtime server to setup environment
+
 	vmsg := types.NewRequestVerification(cfg.ChainID, c.validator, id, req.externalID, req.dataSourceID)
 	sig, pubkey, err := kb.Sign(key.GetName(), vmsg.GetSignBytes())
 	if err != nil {
@@ -250,7 +265,7 @@ func handleRawRequest(
 		return
 	}
 
-	result, err := c.executor.Exec(exec, req.calldata, map[string]interface{}{
+	result, err := c.executor.Exec(requirementFile, exec, req.calldata, map[string]interface{}{
 		"BAND_CHAIN_ID":       vmsg.ChainID,
 		"BAND_DATA_SOURCE_ID": strconv.Itoa(int(vmsg.DataSourceID)),
 		"BAND_VALIDATOR":      vmsg.Validator,

@@ -1,0 +1,29 @@
+syntax = "proto3";
+package guardian.v1;
+
+option go_package = "github.com/bandprotocol/chain/x/guardian/types";
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+enum STATUS{
+  CLAIMABLE = 0;
+  CLAIMED =  1;
+}
+
+message Payee {
+  option (gogoproto.equal) = true;
+  string payee = 1;
+  STATUS status = 2;
+}
+
+message GuardedFee {
+  option (gogoproto.equal) = true;
+  string payer = 1;
+  repeated Payee payees = 2;
+
+  repeated cosmos.base.v1beta1.Coin fee = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
