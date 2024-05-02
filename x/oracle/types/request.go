@@ -21,6 +21,7 @@ type RequestSpec interface {
 	GetPrepareGas() uint64
 	GetExecuteGas() uint64
 	GetFeeLimit() sdk.Coins
+	GetOffchainFeeLimit() sdk.Coins
 }
 
 func NewRawRequest(
@@ -46,6 +47,7 @@ func NewRequest(
 	rawRequests []RawRequest,
 	ibcChannel *IBCChannel,
 	executeGas uint64,
+	offchainFeeLimit sdk.Coins,
 ) Request {
 	requestedVals := make([]string, len(requestedValidators))
 	if requestedValidators != nil {
@@ -66,5 +68,6 @@ func NewRequest(
 		RawRequests:         rawRequests,
 		IBCChannel:          ibcChannel,
 		ExecuteGas:          executeGas,
+		OffchainFeeLimit:    offchainFeeLimit,
 	}
 }

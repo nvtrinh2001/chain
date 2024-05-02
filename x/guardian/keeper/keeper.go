@@ -72,3 +72,101 @@ func (k Keeper) GetNextGuardedFeeID(ctx sdk.Context) types.GuardedFeeID {
 	k.SetGuardedFeeCount(ctx, guardedFeeCount+1)
 	return types.GuardedFeeID(guardedFeeCount + 1)
 }
+
+func (k Keeper) Lock(ctx sdk.Context, fromAddr string, toAddrs []string, amt sdk.Coins) error {
+	payer, err := sdk.AccAddressFromBech32(fromAddr)
+	if err != nil {
+		return err
+	}
+
+	var payeeList []sdk.AccAddress
+	for _, payee := range toAddrs {
+		payeeAccount, err := sdk.AccAddressFromBech32(payee)
+		if err != nil {
+			return err
+		}
+		payeeList = append(payeeList, payeeAccount)
+	}
+
+	var paidFee sdk.Coins
+	for _, coin := range amt {
+		temp := sdk.Coin{
+			Denom:  coin.Denom,
+			Amount: coin.Amount.Mul(sdk.NewInt(int64(len(payeeList)))),
+		}
+		paidFee = append(paidFee, temp)
+	}
+
+	// integrate bank module here
+	err = k.bankKeeper.SendCoinsFromAccountToModule(
+		ctx, payer, k.feeCollectorName, paidFee,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	id := k.AddGuardedFee(ctx, types.NewGuardedFee(
+		payer, payeeList, amt,
+	))
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeLock,
+		sdk.NewAttribute(types.AttributeKeyID, fmt.Sprintf("%d", id)),
+	))
+
+	return nil
+}
+
+func (k Keeper) Claim(ctx sdk.Context, toAddr string, id uint64) error {
+	payee, err := sdk.AccAddressFromBech32(toAddr)
+	if err != nil {
+		return err
+	}
+
+	guardedFee, err := k.GetGuardedFee(ctx, types.GuardedFeeID(id))
+	if err != nil {
+		return err
+	}
+
+	check := 0
+	for _, feePayee := range guardedFee.Payees {
+		if feePayee.Payee != toAddr {
+			continue
+		}
+
+		if feePayee.Status != types.STATUS_CLAIMABLE {
+			return types.ErrFeeHasBeenClaimed
+		}
+
+		check = 1
+	}
+	if check == 0 {
+		return types.ErrUnAuthorizedAccount
+	}
+
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(
+		ctx, k.feeCollectorName, payee, guardedFee.Fee,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	for i, payeeInFee := range guardedFee.Payees {
+		if payeeInFee.Payee == toAddr {
+			guardedFee.Payees[i].Status = types.STATUS_CLAIMED
+			break
+		}
+	}
+
+	_ = k.UpdateGuardedFee(ctx, types.GuardedFeeID(id), guardedFee)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeClaim,
+		sdk.NewAttribute(types.AttributeKeyID, fmt.Sprintf("%d", id)),
+		sdk.NewAttribute(types.AttributeClaimedPayee, fmt.Sprintf("%v", toAddr)),
+	))
+
+	return nil
+}

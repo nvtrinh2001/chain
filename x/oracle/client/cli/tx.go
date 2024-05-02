@@ -34,6 +34,7 @@ const (
 	flagRequirementFileId = "requirement-file-id"
 	flagTreasury          = "treasury"
 	flagExpiration        = "expiration"
+	flagOffchainFeeLimit  = "offchain-fee-limit"
 )
 
 // NewTxCmd returns the transaction commands for this module
@@ -64,7 +65,7 @@ func NewTxCmd() *cobra.Command {
 // GetCmdRequest implements the request command handler.
 func GetCmdRequest() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "request [oracle-script-id] [ask-count] [min-count] (-c [calldata]) (-m [client-id]) (--prepare-gas=[prepare-gas] (--execute-gas=[execute-gas])) (--fee-limit=[fee-limit])",
+		Use:   "request [oracle-script-id] [ask-count] [min-count] (-c [calldata]) (-m [client-id]) (--prepare-gas=[prepare-gas] (--execute-gas=[execute-gas])) (--fee-limit=[fee-limit]) (--offchain-fee-limit)",
 		Short: "Make a new data request via an existing oracle script",
 		Args:  cobra.ExactArgs(3),
 		Long: strings.TrimSpace(
@@ -128,6 +129,16 @@ $ %s tx oracle request 1 4 3 --calldata 1234abcdef --client-id cliend-id --fee-l
 				return err
 			}
 
+			coinStr, err = cmd.Flags().GetString(flagOffchainFeeLimit)
+			if err != nil {
+				return err
+			}
+
+			offchainFeeLimit, err := sdk.ParseCoinsNormalized(coinStr)
+			if err != nil {
+				return err
+			}
+
 			msg := types.NewMsgRequestData(
 				oracleScriptID,
 				calldata,
@@ -138,6 +149,7 @@ $ %s tx oracle request 1 4 3 --calldata 1234abcdef --client-id cliend-id --fee-l
 				prepareGas,
 				executeGas,
 				clientCtx.GetFromAddress(),
+				offchainFeeLimit,
 			)
 
 			err = msg.ValidateBasic()
@@ -153,6 +165,7 @@ $ %s tx oracle request 1 4 3 --calldata 1234abcdef --client-id cliend-id --fee-l
 	cmd.Flags().Uint64(flagPrepareGas, 50000, "Prepare gas used in fee counting for prepare request")
 	cmd.Flags().Uint64(flagExecuteGas, 300000, "Execute gas used in fee counting for execute request")
 	cmd.Flags().String(flagFeeLimit, "", "the maximum tokens that will be paid to all data source providers")
+	cmd.Flags().String(flagOffchainFeeLimit, "", "the maximum tokens that will be paid to all validators")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

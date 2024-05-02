@@ -69,6 +69,12 @@ message MsgRequestData {
   uint64 execute_gas = 8;
   // Sender is an account address of message sender.
   string sender = 9;
+
+  repeated cosmos.base.v1beta1.Coin offchain_fee_limit = 10 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+
 }
 
 // MsgRequestDataResponse is response data for MsgRequestData message

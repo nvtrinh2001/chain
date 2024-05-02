@@ -1,4 +1,4 @@
-url -X POST http://localhost:5000/execute \
+curl -X POST http://localhost:5000/execute \
 -H "Content-Type: application/json" \
 -d '{
     "requirement-file": "YWlvZG5zPT0zLjAuMAphaW9odHRwPT0zLjguNQphaW9zaWduYWw9PTEuMi4wCmFzeW5jLXRpbWVvdXQ9PTQuMC4yCmF0dHJzPT0yMS40LjAKYmVjaDMyPT0xLjIuMApjY3h0PT0yLjYuMQpjZXJ0aWZpPT0yMDIyLjUuMTguMQpjZmZpPT0xLjE1LjAKY2hhcnNldC1ub3JtYWxpemVyPT0yLjAuMTIKY3J5cHRvZ3JhcGh5PT0zNy4wLjIKZnJvemVubGlzdD09MS40LjAKaWRuYT09My4zCm11bHRpZGljdD09Ni4wLjIKcHljYXJlcz09NC4xLjIKcHljcGFyc2VyPT0yLjIxCnJlcXVlc3RzPT0yLjI4LjAKdXJsbGliMz09MS4yNi45CndlYnNvY2tldC1jbGllbnQ9PTEuMy4yCnlhcmw9PTEuOS4yCndlYjM9PTYuNS4wCmZsYXNrPT0yLjMuMwppcGZzaHR0cGNsaWVudD09MC43LjAK",

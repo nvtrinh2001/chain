@@ -41,17 +41,19 @@ func NewMsgRequestData(
 	feeLimit sdk.Coins,
 	prepareGas, executeGas uint64,
 	sender sdk.AccAddress,
+	offchainFeeLimit sdk.Coins,
 ) *MsgRequestData {
 	return &MsgRequestData{
-		OracleScriptID: oracleScriptID,
-		Calldata:       calldata,
-		AskCount:       askCount,
-		MinCount:       minCount,
-		ClientID:       clientID,
-		FeeLimit:       feeLimit,
-		Sender:         sender.String(),
-		PrepareGas:     prepareGas,
-		ExecuteGas:     executeGas,
+		OracleScriptID:   oracleScriptID,
+		Calldata:         calldata,
+		AskCount:         askCount,
+		MinCount:         minCount,
+		ClientID:         clientID,
+		FeeLimit:         feeLimit,
+		Sender:           sender.String(),
+		PrepareGas:       prepareGas,
+		ExecuteGas:       executeGas,
+		OffchainFeeLimit: offchainFeeLimit,
 	}
 }
 

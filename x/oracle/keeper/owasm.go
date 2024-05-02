@@ -88,7 +88,8 @@ func (k Keeper) PrepareRequest(
 	// Create a request object. Note that RawRequestIDs will be populated after preparation is done.
 	req := types.NewRequest(
 		r.GetOracleScriptID(), r.GetCalldata(), validators, r.GetMinCount(),
-		ctx.BlockHeight(), ctx.BlockTime(), r.GetClientID(), nil, ibcChannel, r.GetExecuteGas(),
+		ctx.BlockHeight(), ctx.BlockTime(), r.GetClientID(), nil, ibcChannel,
+		r.GetExecuteGas(), r.GetOffchainFeeLimit(),
 	)
 
 	// Create an execution environment and call Owasm prepare function.
@@ -124,6 +125,17 @@ func (k Keeper) PrepareRequest(
 	}
 	// We now have everything we need to the request, so let's add it to the store.
 	id := k.AddRequest(ctx, req)
+
+	var valAccountAddr []string
+	for _, valAddr := range req.RequestedValidators {
+		val, _ := sdk.ValAddressFromBech32(valAddr)
+		accAddr, _ := sdk.AccAddressFromHex(hex.EncodeToString(val.Bytes()))
+		valAccountAddr = append(valAccountAddr, accAddr.String())
+	}
+	err = k.guardianKeeper.Lock(ctx, feePayer.String(), valAccountAddr, r.GetOffchainFeeLimit())
+	if err != nil {
+		return 0, err
+	}
 
 	// Emit an event describing a data request and asked validators.
 	event := sdk.NewEvent(types.EventTypeRequest)
@@ -171,6 +183,7 @@ func (k Keeper) PrepareRequest(
 			sdk.NewAttribute(types.AttributeKeyRequirementFileHash, requirementFile.Filename),
 		))
 	}
+
 	return id, nil
 }
 
@@ -178,7 +191,8 @@ func (k Keeper) PrepareRequest(
 // assumes that the given request is in a resolvable state with sufficient reporters.
 func (k Keeper) ResolveRequest(ctx sdk.Context, reqID types.RequestID) {
 	req := k.MustGetRequest(ctx, reqID)
-	env := types.NewExecuteEnv(req, k.GetReports(ctx, reqID), ctx.BlockTime(), int64(k.GetSpanSize(ctx)))
+	reports := k.GetReports(ctx, reqID)
+	env := types.NewExecuteEnv(req, reports, ctx.BlockTime(), int64(k.GetSpanSize(ctx)))
 	script := k.MustGetOracleScript(ctx, req.OracleScriptID)
 	code := k.GetFile(script.Filename)
 	output, err := k.owasmVM.Execute(code, ConvertToOwasmGas(req.GetExecuteGas()), env)
@@ -189,6 +203,13 @@ func (k Keeper) ResolveRequest(ctx sdk.Context, reqID types.RequestID) {
 		k.ResolveFailure(ctx, reqID, "no return data")
 	} else {
 		k.ResolveSuccess(ctx, reqID, env.Retdata, output.GasUsed)
+
+		for _, report := range reports {
+			val, _ := sdk.ValAddressFromBech32(report.Validator)
+			accAddr, _ := sdk.AccAddressFromHex(hex.EncodeToString(val.Bytes()))
+
+			_ = k.guardianKeeper.Claim(ctx, accAddr.String(), uint64(reqID))
+		}
 	}
 }
 

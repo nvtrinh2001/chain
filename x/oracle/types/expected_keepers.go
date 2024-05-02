@@ -14,6 +14,11 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v4/modules/core/exported"
 )
 
+type GuardianKeeper interface {
+	Lock(ctx sdk.Context, fromAddr string, toAddrs []string, amt sdk.Coins) error
+	Claim(ctx sdk.Context, toAddr string, id uint64) error
+}
+
 // AccountKeeper defines the expected account keeper.
 type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI

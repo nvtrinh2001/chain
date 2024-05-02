@@ -31,15 +31,15 @@ type Keeper struct {
 	feeCollectorName string
 	paramstore       paramtypes.Subspace
 	owasmVM          *owasm.Vm
-
-	authKeeper    types.AccountKeeper
-	bankKeeper    types.BankKeeper
-	stakingKeeper types.StakingKeeper
-	distrKeeper   types.DistrKeeper
-	authzKeeper   types.AuthzKeeper
-	channelKeeper types.ChannelKeeper
-	portKeeper    types.PortKeeper
-	scopedKeeper  capabilitykeeper.ScopedKeeper
+	guardianKeeper   types.GuardianKeeper
+	authKeeper       types.AccountKeeper
+	bankKeeper       types.BankKeeper
+	stakingKeeper    types.StakingKeeper
+	distrKeeper      types.DistrKeeper
+	authzKeeper      types.AuthzKeeper
+	channelKeeper    types.ChannelKeeper
+	portKeeper       types.PortKeeper
+	scopedKeeper     capabilitykeeper.ScopedKeeper
 }
 
 // NewKeeper creates a new oracle Keeper instance.
@@ -49,6 +49,7 @@ func NewKeeper(
 	ps paramtypes.Subspace,
 	fileDir string,
 	feeCollectorName string,
+	guardianKeeper types.GuardianKeeper,
 	authKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	stakingKeeper types.StakingKeeper,
@@ -67,6 +68,7 @@ func NewKeeper(
 		cdc:              cdc,
 		fileCache:        filecache.New(fileDir),
 		feeCollectorName: feeCollectorName,
+		guardianKeeper:   guardianKeeper,
 		paramstore:       ps,
 		owasmVM:          owasmVM,
 		authKeeper:       authKeeper,

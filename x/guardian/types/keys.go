@@ -24,7 +24,7 @@ var (
 
 	GuardedFeeCountStoreKey = append(GlobalStoreKeyPrefix, []byte("GuardedFeeCount")...)
 
-	GuardedFeeStoreKeyPrefix = []byte{0x01}
+	GuardedFeeStoreKeyPrefix = []byte{0x07}
 )
 
 // GuardedFeeStoreKey returns the key to retrieve a specific guarded fee from the store.

@@ -415,25 +415,6 @@ func NewBandApp(
 	icaModule := ica.NewAppModule(nil, &app.ICAHostKeeper)
 	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
 
-	app.OracleKeeper = oraclekeeper.NewKeeper(
-		appCodec,
-		keys[oracletypes.StoreKey],
-		app.GetSubspace(oracletypes.ModuleName),
-		filepath.Join(homePath, "files"),
-		authtypes.FeeCollectorName,
-		app.AccountKeeper,
-		app.BankKeeper,
-		&stakingKeeper,
-		app.DistrKeeper,
-		app.AuthzKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		&app.IBCKeeper.PortKeeper,
-		scopedOracleKeeper,
-		owasmVM,
-	)
-	oracleModule := oracle.NewAppModule(app.OracleKeeper)
-	oracleIBCModule := oracle.NewIBCModule(app.OracleKeeper)
-
 	app.GuardianKeeper = guardiankeeper.NewKeeper(
 		appCodec,
 		keys[oracletypes.StoreKey],
@@ -446,6 +427,26 @@ func NewBandApp(
 		app.AuthzKeeper,
 	)
 	guardianModule := guardian.NewAppModule(app.GuardianKeeper)
+
+	app.OracleKeeper = oraclekeeper.NewKeeper(
+		appCodec,
+		keys[oracletypes.StoreKey],
+		app.GetSubspace(oracletypes.ModuleName),
+		filepath.Join(homePath, "files"),
+		authtypes.FeeCollectorName,
+		app.GuardianKeeper,
+		app.AccountKeeper,
+		app.BankKeeper,
+		&stakingKeeper,
+		app.DistrKeeper,
+		app.AuthzKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
+		scopedOracleKeeper,
+		owasmVM,
+	)
+	oracleModule := oracle.NewAppModule(app.OracleKeeper)
+	oracleIBCModule := oracle.NewIBCModule(app.OracleKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()

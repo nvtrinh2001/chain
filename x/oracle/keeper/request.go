@@ -36,7 +36,8 @@ func (k Keeper) MustGetRequest(ctx sdk.Context, id types.RequestID) types.Reques
 
 // SetRequest saves the given data request to the store without performing any validation.
 func (k Keeper) SetRequest(ctx sdk.Context, id types.RequestID, request types.Request) {
-	ctx.KVStore(k.storeKey).Set(types.RequestStoreKey(id), k.cdc.MustMarshal(&request))
+	requestBytes := k.cdc.MustMarshal(&request)
+	ctx.KVStore(k.storeKey).Set(types.RequestStoreKey(id), requestBytes)
 }
 
 // DeleteRequest removes the given data request from the store.
