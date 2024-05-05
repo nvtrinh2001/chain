@@ -9,4 +9,5 @@ var (
 	ErrNotEnoughFee        = sdkerrors.Register(ModuleName, 2, "not enough fee")
 	ErrFeeHasBeenClaimed   = sdkerrors.Register(ModuleName, 3, "fee has been claimed")
 	ErrUnAuthorizedAccount = sdkerrors.Register(ModuleName, 4, "account is not authorized to claim")
+	ErrInvalidAmount       = sdkerrors.Register(ModuleName, 5, "invalid amount to claim")
 )

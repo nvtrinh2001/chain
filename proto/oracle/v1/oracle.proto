@@ -111,6 +111,11 @@ message RawReport {
   // It is usually filled by the result from execution of specified data source
   // script.
   bytes data = 3;
+
+  repeated cosmos.base.v1beta1.Coin offchain_fee_used = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 }
 
 // Request is the data structure for storing requests in the storage.
@@ -163,6 +168,10 @@ message Report {
   // RawReports is list of raw reports provided by the validator.
   // Each raw report has different external ID
   repeated RawReport raw_reports = 3 [ (gogoproto.nullable) = false ];
+  repeated cosmos.base.v1beta1.Coin offchain_fee_used = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 }
 
 // ResolveStatus encodes the status of an oracle request.

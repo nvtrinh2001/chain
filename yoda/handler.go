@@ -119,8 +119,20 @@ func handleRequestLog(c *Context, l *Logger, log sdk.ABCIMessageLog) {
 		clientID = rawClientID[0]
 	}
 
+	offchainFeeUsed := reports[0].OffchainFeeUsed
+	for idx := 1; idx < len(reports); idx++ {
+		for _, coin := range reports[idx].OffchainFeeUsed {
+			for i, offchainCoin := range offchainFeeUsed {
+				if offchainCoin.Denom == coin.Denom {
+					offchainFeeUsed[i].Amount.Add(coin.Amount)
+					break
+				}
+			}
+		}
+	}
+
 	c.pendingMsgs <- ReportMsgWithKey{
-		msg:         types.NewMsgReportData(types.RequestID(id), reports, c.validator),
+		msg:         types.NewMsgReportData(types.RequestID(id), reports, c.validator, offchainFeeUsed),
 		execVersion: execVersions,
 		keyIndex:    keyIndex,
 		feeEstimationData: FeeEstimationData{
@@ -166,8 +178,20 @@ func handlePendingRequest(c *Context, l *Logger, id types.RequestID) {
 	// process raw requests
 	reports, execVersions := handleRawRequests(c, l, id, rawRequests, key)
 
+	offchainFeeUsed := rawRequests[0].offlineFeeLimit
+	for idx := 1; idx < len(rawRequests); idx++ {
+		for _, coin := range rawRequests[idx].offlineFeeLimit {
+			for i, offchainCoin := range offchainFeeUsed {
+				if offchainCoin.Denom == coin.Denom {
+					offchainFeeUsed[i].Amount.Add(coin.Amount)
+					break
+				}
+			}
+		}
+	}
+
 	c.pendingMsgs <- ReportMsgWithKey{
-		msg:         types.NewMsgReportData(types.RequestID(id), reports, c.validator),
+		msg:         types.NewMsgReportData(types.RequestID(id), reports, c.validator, offchainFeeUsed),
 		execVersion: execVersions,
 		keyIndex:    keyIndex,
 		feeEstimationData: FeeEstimationData{
@@ -213,7 +237,7 @@ func handleRawRequests(
 		execVersions = append(execVersions, version)
 	}
 
-	return
+	return reports, execVersions
 }
 
 func handleRawRequest(
@@ -232,7 +256,7 @@ func handleRawRequest(
 		l.Error(":skull: Failed to load requirement file with error: %s", c, err.Error())
 		processingResultCh <- processingResult{
 			rawReport: types.NewRawReport(
-				req.externalID, 255, []byte("FAIL_TO_LOAD_REQUIREMENT_FILE"),
+				req.externalID, 255, []byte("FAIL_TO_LOAD_REQUIREMENT_FILE"), nil,
 			),
 			err: err,
 		}
@@ -245,7 +269,7 @@ func handleRawRequest(
 		l.Error(":skull: Failed to load data source with error: %s", c, err.Error())
 		processingResultCh <- processingResult{
 			rawReport: types.NewRawReport(
-				req.externalID, 255, []byte("FAIL_TO_LOAD_DATA_SOURCE"),
+				req.externalID, 255, []byte("FAIL_TO_LOAD_DATA_SOURCE"), nil,
 			),
 			err: err,
 		}
@@ -259,11 +283,13 @@ func handleRawRequest(
 	if err != nil {
 		l.Error(":skull: Failed to sign verify message: %s", c, err.Error())
 		processingResultCh <- processingResult{
-			rawReport: types.NewRawReport(req.externalID, 255, nil),
+			rawReport: types.NewRawReport(req.externalID, 255, nil, nil),
 			err:       err,
 		}
 		return
 	}
+
+	c.executor.SetTimeout(req.offlineFeeLimit.AmountOf("uband").Uint64())
 
 	result, err := c.executor.Exec(requirementFile, exec, req.calldata, map[string]interface{}{
 		"BAND_CHAIN_ID":       vmsg.ChainID,
@@ -278,7 +304,7 @@ func handleRawRequest(
 	if err != nil {
 		l.Error(":skull: Failed to execute data source script: %s", c, err.Error())
 		processingResultCh <- processingResult{
-			rawReport: types.NewRawReport(req.externalID, 255, nil),
+			rawReport: types.NewRawReport(req.externalID, 255, nil, nil),
 			err:       err,
 		}
 		return
@@ -287,8 +313,14 @@ func handleRawRequest(
 			":sparkles: Query data done with calldata: %q, result: %q, exitCode: %d",
 			req.calldata, result.Output, result.Code,
 		)
+
+		offchainFeeUsed, err := sdk.ParseCoinsNormalized(result.OffchainFeeUsed)
+		if err != nil {
+			panic(err)
+		}
+
 		processingResultCh <- processingResult{
-			rawReport: types.NewRawReport(req.externalID, result.Code, result.Output),
+			rawReport: types.NewRawReport(req.externalID, result.Code, result.Output, offchainFeeUsed),
 			version:   result.Version,
 		}
 	}

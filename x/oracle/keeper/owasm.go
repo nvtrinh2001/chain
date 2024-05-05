@@ -181,6 +181,7 @@ func (k Keeper) PrepareRequest(
 			sdk.NewAttribute(types.AttributeKeyFee, ds.Fee.String()),
 			sdk.NewAttribute(types.AttributeKeyRequirementFileID, fmt.Sprintf("%d", ds.RequirementFileId)),
 			sdk.NewAttribute(types.AttributeKeyRequirementFileHash, requirementFile.Filename),
+			sdk.NewAttribute(types.AttributeOffchainFeeLimit, r.GetOffchainFeeLimit().String()),
 		))
 	}
 
@@ -204,12 +205,22 @@ func (k Keeper) ResolveRequest(ctx sdk.Context, reqID types.RequestID) {
 	} else {
 		k.ResolveSuccess(ctx, reqID, env.Retdata, output.GasUsed)
 
+		var valList []sdk.AccAddress
+		feeUsed := reports[0].OffchainFeeUsed
 		for _, report := range reports {
 			val, _ := sdk.ValAddressFromBech32(report.Validator)
 			accAddr, _ := sdk.AccAddressFromHex(hex.EncodeToString(val.Bytes()))
+			valList = append(valList, accAddr)
 
-			_ = k.guardianKeeper.Claim(ctx, accAddr.String(), uint64(reqID))
+			if feeUsed.IsAllGT(report.OffchainFeeUsed) {
+				feeUsed = report.OffchainFeeUsed
+			}
 		}
+
+		for _, val := range valList {
+			_ = k.guardianKeeper.Claim(ctx, val.String(), uint64(reqID), feeUsed)
+		}
+
 	}
 }
 

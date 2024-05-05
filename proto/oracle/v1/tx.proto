@@ -93,6 +93,10 @@ message MsgReportData {
   repeated RawReport raw_reports = 2 [ (gogoproto.nullable) = false ];
   // Validator is the address of the validator that owns this report.
   string validator = 3;
+  repeated cosmos.base.v1beta1.Coin offchain_fee_used = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 }
 
 // MsgReportDataResponse is response data for MsgReportData message

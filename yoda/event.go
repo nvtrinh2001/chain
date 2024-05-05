@@ -16,6 +16,7 @@ type rawRequest struct {
 	calldata            string
 	requirementFileID   types.RequirementFileID
 	requirementFileHash string
+	offlineFeeLimit     sdk.Coins
 }
 
 // GetRawRequests returns the list of all raw data requests in the given log.
@@ -26,6 +27,7 @@ func GetRawRequests(log sdk.ABCIMessageLog) ([]rawRequest, error) {
 	calldataList := GetEventValues(log, types.EventTypeRawRequest, types.AttributeKeyCalldata)
 	requirementFileIDs := GetEventValues(log, types.EventTypeRawRequest, types.AttributeKeyRequirementFileID)
 	requirementFileHashList := GetEventValues(log, types.EventTypeRawRequest, types.AttributeKeyRequirementFileHash)
+	offlineFeeLimitList := GetEventValues(log, types.EventTypeRawRequest, types.AttributeOffchainFeeLimit)
 
 	if len(dataSourceIDs) != len(externalIDs) {
 		return nil, fmt.Errorf("Inconsistent data source count and external ID count")
@@ -51,6 +53,11 @@ func GetRawRequests(log sdk.ABCIMessageLog) ([]rawRequest, error) {
 			return nil, fmt.Errorf("Failed to parse requirement file id: %s", err.Error())
 		}
 
+		offlineFeeLimit, err := sdk.ParseCoinsNormalized(offlineFeeLimitList[idx])
+		if err != nil {
+			return nil, err
+		}
+
 		reqs = append(reqs, rawRequest{
 			dataSourceID:        types.DataSourceID(dataSourceID),
 			dataSourceHash:      dataSourceHashList[idx],
@@ -58,6 +65,7 @@ func GetRawRequests(log sdk.ABCIMessageLog) ([]rawRequest, error) {
 			calldata:            calldataList[idx],
 			requirementFileID:   types.RequirementFileID(requirementFileID),
 			requirementFileHash: requirementFileHashList[idx],
+			offlineFeeLimit:     offlineFeeLimit,
 		})
 	}
 	return reqs, nil

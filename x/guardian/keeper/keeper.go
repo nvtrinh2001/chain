@@ -118,7 +118,7 @@ func (k Keeper) Lock(ctx sdk.Context, fromAddr string, toAddrs []string, amt sdk
 	return nil
 }
 
-func (k Keeper) Claim(ctx sdk.Context, toAddr string, id uint64) error {
+func (k Keeper) Claim(ctx sdk.Context, toAddr string, id uint64, amt sdk.Coins) error {
 	payee, err := sdk.AccAddressFromBech32(toAddr)
 	if err != nil {
 		return err
@@ -127,6 +127,10 @@ func (k Keeper) Claim(ctx sdk.Context, toAddr string, id uint64) error {
 	guardedFee, err := k.GetGuardedFee(ctx, types.GuardedFeeID(id))
 	if err != nil {
 		return err
+	}
+
+	if amt.IsAnyGT(guardedFee.Fee) {
+		return types.ErrInvalidAmount
 	}
 
 	check := 0
@@ -146,9 +150,26 @@ func (k Keeper) Claim(ctx sdk.Context, toAddr string, id uint64) error {
 	}
 
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(
-		ctx, k.feeCollectorName, payee, guardedFee.Fee,
+		ctx, k.feeCollectorName, payee, amt,
 	)
 
+	if err != nil {
+		return err
+	}
+
+	remain, isNeg := guardedFee.Fee.SafeSub(amt)
+	if isNeg {
+		return types.ErrInvalidAmount
+	}
+
+	payer, err := sdk.AccAddressFromBech32(guardedFee.Payer)
+	if err != nil {
+		return err
+	}
+
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(
+		ctx, k.feeCollectorName, payer, remain,
+	)
 	if err != nil {
 		return err
 	}

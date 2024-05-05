@@ -30,7 +30,7 @@ func checkValidReportMsg(ctx sdk.Context, oracleKeeper keeper.Keeper, r *types.M
 	if err != nil {
 		return err
 	}
-	report := types.NewReport(validator, false, r.RawReports)
+	report := types.NewReport(validator, false, r.RawReports, r.OffchainFeeUsed)
 	return oracleKeeper.CheckValidReport(ctx, r.RequestID, report)
 }
 

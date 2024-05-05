@@ -113,11 +113,12 @@ func (msg MsgRequestData) GetSignBytes() []byte {
 }
 
 // NewMsgReportData creates a new MsgReportData instance
-func NewMsgReportData(requestID RequestID, rawReports []RawReport, validator sdk.ValAddress) *MsgReportData {
+func NewMsgReportData(requestID RequestID, rawReports []RawReport, validator sdk.ValAddress, offchainFeeUsed sdk.Coins) *MsgReportData {
 	return &MsgReportData{
-		RequestID:  requestID,
-		RawReports: rawReports,
-		Validator:  validator.String(),
+		RequestID:       requestID,
+		RawReports:      rawReports,
+		Validator:       validator.String(),
+		OffchainFeeUsed: offchainFeeUsed,
 	}
 }
 

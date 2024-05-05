@@ -16,7 +16,7 @@ import (
 
 type GuardianKeeper interface {
 	Lock(ctx sdk.Context, fromAddr string, toAddrs []string, amt sdk.Coins) error
-	Claim(ctx sdk.Context, toAddr string, id uint64) error
+	Claim(ctx sdk.Context, toAddr string, id uint64, amt sdk.Coins) error
 }
 
 // AccountKeeper defines the expected account keeper.

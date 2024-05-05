@@ -84,6 +84,7 @@ func getReportByteLength(msg *types.MsgReportData) uint64 {
 		sdk.ValAddress(msg.Validator),
 		true,
 		msg.RawReports,
+		msg.OffchainFeeUsed,
 	)
 	return uint64(len(cdc.MustMarshal(&report)))
 }

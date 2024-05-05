@@ -4,6 +4,7 @@ import shlex
 import base64
 import subprocess
 from flask import Flask, request, jsonify
+import time
 
 app = Flask(__name__)
 
@@ -15,12 +16,13 @@ HEADERS = {
 
 runtime_version = "1.0.0"
 
-def success(returncode, stdout, stderr, err):
+def success(returncode, stdout, stderr, err, duration):
     return {
         "returncode": returncode,
         "stdout": stdout,
         "stderr": stderr,
         "error": err,
+        "duration": str(duration) + "s",
         "version": runtime_version,
     }
 
@@ -37,10 +39,7 @@ def lambda_handler_flask():
         body = request.json
     except (json.decoder.JSONDecodeError, KeyError) as e:
         # Hack for preflight
-        return jsonify({
-            "statusCode": 200,
-            "headers": HEADERS
-        })
+        return bad_request("Cannot be jsonified")
 
     env = os.environ.copy()
 
@@ -66,10 +65,12 @@ def lambda_handler_flask():
     except ValueError:
         return bad_request("Timeout format invalid")
 
+    start_time = time.time()  # Capture the start time
+
     # Create a virtual environment
     venv_path = "/tmp/venv"
     subprocess.run(["python3", "-m", "venv", venv_path], check=True)
-    
+
     requirement_path = "/tmp/requirements.txt"
     with open(requirement_path, "w") as req_f:
         req_f.write(requirement_file.decode())
@@ -96,19 +97,22 @@ def lambda_handler_flask():
         )
 
         proc.wait(timeout=timeout)
+        execution_time = time.time() - start_time  # Calculate the execution time
         returncode = proc.returncode
         stdout = proc.stdout.read(MAX_DATA_SIZE).decode()
         stderr = proc.stderr.read(MAX_DATA_SIZE).decode()
-        result = success(returncode, stdout, stderr, "")
+        result = success(returncode, stdout, stderr, "", execution_time)
     except OSError:
-        result = success(126, "", "", "Execution fail")
+        execution_time = time.time() - start_time  # Calculate the execution time
+        result = success(126, "", "", "Execution fail", execution_time)
     except subprocess.TimeoutExpired:
-        result = success(111, "", "", "Execution time limit exceeded")
-
-    clean_cmd = "rm -rf /tmp/venv /tmp/requirements.txt /tmp/execute.py"
-    subprocess.run(clean_cmd, shell=True)
-    print(result)
-    return result
+        execution_time = time.time() - start_time  # Calculate the execution time
+        result = success(111, "", "", "Execution time limit exceeded", execution_time)
+    finally:
+        clean_cmd = "rm -rf /tmp/venv /tmp/requirements.txt /tmp/execute.py"
+        subprocess.run(clean_cmd, shell=True)
+        print(result)
+        return result
 
 if __name__ == '__main__':
     app.run(debug=True)

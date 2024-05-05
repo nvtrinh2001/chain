@@ -36,4 +36,5 @@ const (
 	AttributeKeyFee                 = "fee"
 	AttributeKeyResult              = "result"
 	AttributeKeyReason              = "reason"
+	AttributeOffchainFeeLimit       = "offchain_fee_limit"
 )

@@ -18,13 +18,15 @@ var (
 )
 
 type ExecResult struct {
-	Output  []byte
-	Code    uint32
-	Version string
+	Output          []byte
+	Code            uint32
+	OffchainFeeUsed string
+	Version         string
 }
 
 type Executor interface {
 	Exec(requirementFile []byte, exec []byte, arg string, env interface{}) (ExecResult, error)
+	SetTimeout(amt uint64)
 }
 
 var testProgram []byte = []byte(

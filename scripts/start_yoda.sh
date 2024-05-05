@@ -45,4 +45,4 @@ echo "y" | bandd tx oracle add-reporters $(yoda keys list -a) --from validator -
 sleep 2
 
 # run yoda
-yoda run --node http://127.0.0.1:26657
+#yoda run --node http://127.0.0.1:26657
