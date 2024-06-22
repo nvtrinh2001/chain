@@ -1,0 +1,2 @@
+web3
+git+https://github.com/nvtrinh2001/py-ipfs-http-client.git#egg=ipfshttpclient

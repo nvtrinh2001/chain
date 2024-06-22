@@ -1,12 +1,11 @@
 #!/home/nvt/chain/data-sources/venv python3
 
-import json
-import time
-
 from web3 import Web3
 import ipfshttpclient
+import hashlib
+import json
 
-START_BLOCK = 9_999_900
+START_BLOCK = 9_999_990
 END_BLOCK = 10_000_000
 
 
@@ -36,7 +35,7 @@ def get_transactions(ipfs_cli):
 
         for block in range(START_BLOCK, END_BLOCK):
             block = w3.eth.get_block(block, full_transactions=True)
-            for transaction in block.t:
+            for transaction in block.transactions:
                 tx_data = {
                     "hash": transaction.hash.hex(),
                     "from": transaction['from'],
@@ -47,6 +46,7 @@ def get_transactions(ipfs_cli):
                 transactions.append(tx_data)
 
         ipfs_cli.upload(transactions)
+        # return hashlib.sha256(json.dumps(transactions, sort_keys=True).encode('utf-8')).hexdigest()
 
     except Exception as e:
         print('Error retrieving transaction history:', e)
@@ -62,10 +62,11 @@ if __name__ == "__main__":
     hash = ipfs_cli.get_hash()
     ipfs_cli.close()
 
+    # print(hash1, hash2)
     print(hash)
-    # verified_content = ipfs_cli.get_value()
+    #verified_content = ipfs_cli.get_value()
     #print(verified_content[0])
 
-    # print("Hash of saved content: ", hash)
-    # print("Number of transactions: ", len(verified_content))
+    #print("Hash of saved content: ", hash)
+    #print("Number of transactions: ", len(verified_content))
     # print("Execution Time: ", end_time - start_time)

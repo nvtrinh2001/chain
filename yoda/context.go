@@ -30,11 +30,15 @@ type ReportMsgWithKey struct {
 }
 
 type Context struct {
-	client           rpcclient.Client
-	validator        sdk.ValAddress
-	gasPrices        string
-	keys             []keyring.Info
-	executor         executor.Executor
+	client    rpcclient.Client
+	validator sdk.ValAddress
+	gasPrices string
+	keys      []keyring.Info
+
+	executors     []executor.Executor
+	mu            sync.Mutex
+	executorIndex int
+
 	fileCache        filecache.Cache
 	broadcastTimeout time.Duration
 	maxTry           uint64

@@ -5,3 +5,4 @@
 /google-cloud-functions/venv
 /google-cloud-functions/requirements.txt
 /google-cloud-functions/gcf-executor.zip
+/runtime-server/venv*

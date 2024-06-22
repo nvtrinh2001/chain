@@ -24,6 +24,7 @@ const (
 	DefaultOracleRewardPercentage  = uint64(70)
 	DefaultInactivePenaltyDuration = uint64(10 * time.Minute)
 	DefaultIBCRequestEnabled       = true
+	DefaultBaseOffchainFeePerHour  = uint64(1_000_000)
 )
 
 // nolint
@@ -41,6 +42,7 @@ var (
 	KeyOracleRewardPercentage  = []byte("OracleRewardPercentage")
 	KeyInactivePenaltyDuration = []byte("InactivePenaltyDuration")
 	KeyIBCRequestEnabled       = []byte("IBCRequestEnabled")
+	BaseOffchainFeePerHour     = []byte("BaseOffchainFeePerHour")
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -54,7 +56,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 func NewParams(
 	maxRawRequestCount, maxAskCount, maxCalldataSize, maxReportDataSize, expirationBlockCount, baseRequestGas, perValidatorRequestGas,
 	samplingTryCount, oracleRewardPercentage, inactivePenaltyDuration uint64,
-	ibcRequestEnabled bool,
+	ibcRequestEnabled bool, baseOffchainFeePerHour uint64,
 ) Params {
 	return Params{
 		MaxRawRequestCount:      maxRawRequestCount,
@@ -68,6 +70,7 @@ func NewParams(
 		OracleRewardPercentage:  oracleRewardPercentage,
 		InactivePenaltyDuration: inactivePenaltyDuration,
 		IBCRequestEnabled:       ibcRequestEnabled,
+		BaseOffchainFeePerHour:  baseOffchainFeePerHour,
 	}
 }
 
@@ -112,6 +115,11 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 			&p.InactivePenaltyDuration,
 			validateUint64("inactive penalty duration", false),
 		),
+		paramtypes.NewParamSetPair(
+			BaseOffchainFeePerHour,
+			&p.BaseOffchainFeePerHour,
+			validateUint64("base offchain fee per hour", false),
+		),
 		paramtypes.NewParamSetPair(KeyIBCRequestEnabled, &p.IBCRequestEnabled, validateBool()),
 	}
 }
@@ -130,6 +138,7 @@ func DefaultParams() Params {
 		DefaultOracleRewardPercentage,
 		DefaultInactivePenaltyDuration,
 		DefaultIBCRequestEnabled,
+		DefaultBaseOffchainFeePerHour,
 	)
 }
 

@@ -10,13 +10,14 @@ import (
 )
 
 type rawRequest struct {
-	dataSourceID        types.DataSourceID
-	dataSourceHash      string
-	externalID          types.ExternalID
-	calldata            string
-	requirementFileID   types.RequirementFileID
-	requirementFileHash string
-	offlineFeeLimit     sdk.Coins
+	dataSourceID           types.DataSourceID
+	dataSourceHash         string
+	externalID             types.ExternalID
+	calldata               string
+	requirementFileID      types.RequirementFileID
+	requirementFileHash    string
+	offlineFeeLimit        sdk.Coins
+	baseOffchainFeePerHour uint64
 }
 
 // GetRawRequests returns the list of all raw data requests in the given log.
@@ -28,6 +29,7 @@ func GetRawRequests(log sdk.ABCIMessageLog) ([]rawRequest, error) {
 	requirementFileIDs := GetEventValues(log, types.EventTypeRawRequest, types.AttributeKeyRequirementFileID)
 	requirementFileHashList := GetEventValues(log, types.EventTypeRawRequest, types.AttributeKeyRequirementFileHash)
 	offlineFeeLimitList := GetEventValues(log, types.EventTypeRawRequest, types.AttributeOffchainFeeLimit)
+	baseOffchainFeePerHourList := GetEventValues(log, types.EventTypeRawRequest, types.AttributeBaseOffchainFeePerHour)
 
 	if len(dataSourceIDs) != len(externalIDs) {
 		return nil, fmt.Errorf("Inconsistent data source count and external ID count")
@@ -58,14 +60,20 @@ func GetRawRequests(log sdk.ABCIMessageLog) ([]rawRequest, error) {
 			return nil, err
 		}
 
+		baseOffchainFeePerHour, err := strconv.Atoi(baseOffchainFeePerHourList[idx])
+		if err != nil {
+			return nil, err
+		}
+
 		reqs = append(reqs, rawRequest{
-			dataSourceID:        types.DataSourceID(dataSourceID),
-			dataSourceHash:      dataSourceHashList[idx],
-			externalID:          types.ExternalID(externalID),
-			calldata:            calldataList[idx],
-			requirementFileID:   types.RequirementFileID(requirementFileID),
-			requirementFileHash: requirementFileHashList[idx],
-			offlineFeeLimit:     offlineFeeLimit,
+			dataSourceID:           types.DataSourceID(dataSourceID),
+			dataSourceHash:         dataSourceHashList[idx],
+			externalID:             types.ExternalID(externalID),
+			calldata:               calldataList[idx],
+			requirementFileID:      types.RequirementFileID(requirementFileID),
+			requirementFileHash:    requirementFileHashList[idx],
+			offlineFeeLimit:        offlineFeeLimit,
+			baseOffchainFeePerHour: uint64(baseOffchainFeePerHour),
 		})
 	}
 	return reqs, nil

@@ -5,6 +5,8 @@ import base64
 import subprocess
 from flask import Flask, request, jsonify
 import time
+import argparse
+import ipfshttpclient
 
 app = Flask(__name__)
 
@@ -15,6 +17,21 @@ HEADERS = {
 }
 
 runtime_version = "1.0.0"
+
+# IPFS Client
+class IPFSClient:
+    def __init__(self):
+        self._hash = None
+        self._client = ipfshttpclient.connect(session=True)
+
+    def upload(self, content):
+        self._hash = self._client.add_json(content)
+
+    def get_hash(self):
+        return self._hash
+
+    def close(self):  # Call this when you're done
+        self._client.close()
 
 def success(returncode, stdout, stderr, err, duration):
     return {
@@ -65,21 +82,23 @@ def lambda_handler_flask():
     except ValueError:
         return bad_request("Timeout format invalid")
 
+    port = request.environ.get('SERVER_PORT')
+
     start_time = time.time()  # Capture the start time
 
     # Create a virtual environment
-    venv_path = "/tmp/venv"
+    venv_path = f"/tmp/venv{port}"
     subprocess.run(["python3", "-m", "venv", venv_path], check=True)
 
-    requirement_path = "/tmp/requirements.txt"
+    requirement_path = f"/tmp/requirements{port}.txt"
     with open(requirement_path, "w") as req_f:
         req_f.write(requirement_file.decode())
 
-    pip_path = "/tmp/venv/bin/pip3"
+    pip_path = f"{venv_path}/bin/pip3"
     installation_cmd = f"{pip_path} install -r {requirement_path}"
     subprocess.run(installation_cmd, shell=True)
 
-    path = "/tmp/execute.py"
+    path = f"/tmp/execute{port}.py"
     with open(path, "w") as f:
         f.write(executable.decode())
 
@@ -90,7 +109,7 @@ def lambda_handler_flask():
             env[key] = value
 
         proc = subprocess.Popen(
-            ["/tmp/venv/bin/python3", path] + shlex.split(body["calldata"]),
+            [f"{venv_path}/bin/python3", path] + shlex.split(body["calldata"]),
             env=env,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -101,7 +120,13 @@ def lambda_handler_flask():
         returncode = proc.returncode
         stdout = proc.stdout.read(MAX_DATA_SIZE).decode()
         stderr = proc.stderr.read(MAX_DATA_SIZE).decode()
-        result = success(returncode, stdout, stderr, "", execution_time)
+
+        ipfs_cli = IPFSClient()
+        ipfs_cli.upload(stdout)
+        content_hash = ipfs_cli.get_hash()
+        ipfs_cli.close()
+
+        result = success(returncode, content_hash, stderr, "", execution_time)
     except OSError:
         execution_time = time.time() - start_time  # Calculate the execution time
         result = success(126, "", "", "Execution fail", execution_time)
@@ -109,11 +134,14 @@ def lambda_handler_flask():
         execution_time = time.time() - start_time  # Calculate the execution time
         result = success(111, "", "", "Execution time limit exceeded", execution_time)
     finally:
-        clean_cmd = "rm -rf /tmp/venv /tmp/requirements.txt /tmp/execute.py"
+        clean_cmd = f"rm -rf {venv_path} {requirement_path} {path}"
         subprocess.run(clean_cmd, shell=True)
         print(result)
         return result
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    parser = argparse.ArgumentParser(description='Run the Flask application')
+    parser.add_argument('port', type=int, help='The port number to run the Flask application on')
+    args = parser.parse_args()
+    app.run(debug=True, port=args.port)
 

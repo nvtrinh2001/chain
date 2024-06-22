@@ -182,6 +182,7 @@ func (k Keeper) PrepareRequest(
 			sdk.NewAttribute(types.AttributeKeyRequirementFileID, fmt.Sprintf("%d", ds.RequirementFileId)),
 			sdk.NewAttribute(types.AttributeKeyRequirementFileHash, requirementFile.Filename),
 			sdk.NewAttribute(types.AttributeOffchainFeeLimit, r.GetOffchainFeeLimit().String()),
+			sdk.NewAttribute(types.AttributeBaseOffchainFeePerHour, fmt.Sprintf("%d", k.BaseOffchainFeePerHour(ctx))),
 		))
 	}
 

@@ -375,6 +375,8 @@ message Params {
   // IBC is allowed
   bool ibc_request_enabled = 11
       [ (gogoproto.customname) = "IBCRequestEnabled" ];
+
+  uint64 base_offchain_fee_per_hour = 12;
 }
 
 // PendingResolveList is a list of requests that are waiting to be resolved

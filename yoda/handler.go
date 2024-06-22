@@ -289,9 +289,13 @@ func handleRawRequest(
 		return
 	}
 
-	c.executor.SetTimeout(req.offlineFeeLimit.AmountOf("uband").Uint64())
+	//c.mu.Lock()
+	c.executorIndex += 1
+	executor := c.executors[c.executorIndex%len(c.executors)]
 
-	result, err := c.executor.Exec(requirementFile, exec, req.calldata, map[string]interface{}{
+	executor.SetTimeout(req.baseOffchainFeePerHour, req.offlineFeeLimit.AmountOf("uband").Uint64())
+
+	result, err := executor.Exec(req.baseOffchainFeePerHour, requirementFile, exec, req.calldata, map[string]interface{}{
 		"BAND_CHAIN_ID":       vmsg.ChainID,
 		"BAND_DATA_SOURCE_ID": strconv.Itoa(int(vmsg.DataSourceID)),
 		"BAND_VALIDATOR":      vmsg.Validator,
@@ -300,6 +304,7 @@ func handleRawRequest(
 		"BAND_REPORTER":       hex.EncodeToString(pubkey.Bytes()),
 		"BAND_SIGNATURE":      sig,
 	})
+	//c.mu.Unlock()
 
 	if err != nil {
 		l.Error(":skull: Failed to execute data source script: %s", c, err.Error())

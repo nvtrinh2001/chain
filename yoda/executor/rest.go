@@ -10,8 +10,6 @@ import (
 	"github.com/levigross/grequests"
 )
 
-const DefaultFeePerHour = 1 * 1_000_000
-
 type RestExec struct {
 	url     string
 	timeout time.Duration
@@ -34,14 +32,14 @@ type externalExecutionResponse struct {
 	Error      string `json:"err"`
 }
 
-func (e *RestExec) SetTimeout(amt uint64) {
-	timeoutFromRequest := time.Duration(amt / DefaultFeePerHour * uint64(time.Hour))
+func (e *RestExec) SetTimeout(baseOffchainFeePerHour uint64, amt uint64) {
+	timeoutFromRequest := time.Duration(amt / baseOffchainFeePerHour * uint64(time.Hour))
 	if e.timeout > timeoutFromRequest {
 		e.timeout = timeoutFromRequest
 	}
 }
 
-func (e *RestExec) Exec(requirementFile []byte, code []byte, arg string, env interface{}) (ExecResult, error) {
+func (e *RestExec) Exec(baseOffchainFeePerHour uint64, requirementFile []byte, code []byte, arg string, env interface{}) (ExecResult, error) {
 	executable := base64.StdEncoding.EncodeToString(code)
 	resp, err := grequests.Post(
 		e.url,
@@ -68,7 +66,7 @@ func (e *RestExec) Exec(requirementFile []byte, code []byte, arg string, env int
 			return ExecResult{}, err
 		}
 		// Return timeout code
-		offchainFeeUsed := e.timeout.Hours() * DefaultFeePerHour
+		offchainFeeUsed := e.timeout.Hours() * float64(baseOffchainFeePerHour)
 		offchainFeeUsedStr := fmt.Sprintf("%suband", strconv.FormatUint(uint64(offchainFeeUsed), 10))
 		return ExecResult{Output: []byte{}, Code: 111, OffchainFeeUsed: offchainFeeUsedStr}, nil
 	}
@@ -88,7 +86,7 @@ func (e *RestExec) Exec(requirementFile []byte, code []byte, arg string, env int
 	if err != nil {
 		return ExecResult{}, err
 	}
-	offchainFeeUsed := duration.Hours() * DefaultFeePerHour
+	offchainFeeUsed := duration.Hours() * float64(baseOffchainFeePerHour)
 	offchainFeeUsedStr := fmt.Sprintf("%suband", strconv.FormatUint(uint64(offchainFeeUsed), 10))
 
 	if r.Returncode == 0 {

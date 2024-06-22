@@ -134,7 +134,7 @@ func runCmd(c *Context) *cobra.Command {
 				return err
 			}
 			l := NewLogger(allowLevel)
-			c.executor, err = executor.NewExecutor(cfg.Executor)
+			c.executors, err = executor.NewExecutors(cfg.Executors)
 			if err != nil {
 				return err
 			}

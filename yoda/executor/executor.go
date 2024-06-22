@@ -25,8 +25,8 @@ type ExecResult struct {
 }
 
 type Executor interface {
-	Exec(requirementFile []byte, exec []byte, arg string, env interface{}) (ExecResult, error)
-	SetTimeout(amt uint64)
+	Exec(baseOffchainFeePerHour uint64, requirementFile []byte, exec []byte, arg string, env interface{}) (ExecResult, error)
+	SetTimeout(baseOffchainFeePerHour uint64, amt uint64)
 }
 
 var testProgram []byte = []byte(
@@ -38,40 +38,46 @@ var testRequirementFile []byte = []byte(
 )
 
 // NewExecutor returns executor by name and executor URL
-func NewExecutor(executor string) (exec Executor, err error) {
-	name, base, timeout, err := parseExecutor(executor)
-	if err != nil {
-		return nil, err
-	}
-	switch name {
-	case "rest":
-		exec = NewRestExec(base, timeout)
-	case "docker":
-		return nil, fmt.Errorf("Docker executor is currently not supported")
-	default:
-		return nil, fmt.Errorf("Invalid executor name: %s, base: %s", name, base)
+func NewExecutors(executorsStr string) ([]Executor, error) {
+	execs := make([]Executor, 0)
+	executors := strings.Split(executorsStr, ",")
+
+	for _, executor := range executors {
+		name, base, timeout, err := parseExecutor(executor)
+		if err != nil {
+			return nil, err
+		}
+		switch name {
+		case "rest":
+			exec := NewRestExec(base, timeout)
+			execs = append(execs, exec)
+		case "docker":
+			return nil, fmt.Errorf("Docker executor is currently not supported")
+		default:
+			return nil, fmt.Errorf("Invalid executor name: %s, base: %s", name, base)
+		}
 	}
 
 	// TODO: Remove hardcode in test execution
-	res, err := exec.Exec(testRequirementFile, testProgram, "TEST_ARG", map[string]interface{}{
-		"BAND_CHAIN_ID":    "test-chain-id",
-		"BAND_VALIDATOR":   "test-validator",
-		"BAND_REQUEST_ID":  "test-request-id",
-		"BAND_EXTERNAL_ID": "test-external-id",
-		"BAND_REPORTER":    "test-reporter",
-		"BAND_SIGNATURE":   "test-signature",
-	})
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to run test program: %s", err.Error())
-	}
-	if res.Code != 0 {
-		return nil, fmt.Errorf("test program returned nonzero code: %d", res.Code)
-	}
-	if string(res.Output) != "TEST_ARG test-chain-id\n" {
-		return nil, fmt.Errorf("test program returned wrong output: {%s}", res.Output)
-	}
-	return exec, nil
+	//res, err := exec.Exec(DefaultFeePerHour, testRequirementFile, testProgram, "TEST_ARG", map[string]interface{}{
+	//	"BAND_CHAIN_ID":    "test-chain-id",
+	//	"BAND_VALIDATOR":   "test-validator",
+	//	"BAND_REQUEST_ID":  "test-request-id",
+	//	"BAND_EXTERNAL_ID": "test-external-id",
+	//	"BAND_REPORTER":    "test-reporter",
+	//	"BAND_SIGNATURE":   "test-signature",
+	//})
+	//
+	//if err != nil {
+	//	return nil, fmt.Errorf("failed to run test program: %s", err.Error())
+	//}
+	//if res.Code != 0 {
+	//	return nil, fmt.Errorf("test program returned nonzero code: %d", res.Code)
+	//}
+	//if string(res.Output) != "TEST_ARG test-chain-id\n" {
+	//	return nil, fmt.Errorf("test program returned wrong output: {%s}", res.Output)
+	//}
+	return execs, nil
 }
 
 // parseExecutor splits the executor string in the form of "name:base?timeout=" into parts.

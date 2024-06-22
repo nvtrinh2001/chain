@@ -33,7 +33,7 @@ type Config struct {
 	Validator         string `mapstructure:"validator"`           // The validator address that I'm responsible for
 	GasPrices         string `mapstructure:"gas-prices"`          // Gas prices of the transaction
 	LogLevel          string `mapstructure:"log-level"`           // Log level of the logger
-	Executor          string `mapstructure:"executor"`            // Executor name and URL (example: "Executor name:URL")
+	Executors         string `mapstructure:"executor"`            // Executor name and URL (example: "Executor name:URL")
 	BroadcastTimeout  string `mapstructure:"broadcast-timeout"`   // The time that Yoda will wait for tx commit
 	RPCPollInterval   string `mapstructure:"rpc-poll-interval"`   // The duration of rpc poll interval
 	MaxTry            uint64 `mapstructure:"max-try"`             // The maximum number of tries to submit a report transaction

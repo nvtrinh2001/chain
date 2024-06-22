@@ -10,9 +10,13 @@ func configCmd() *cobra.Command {
 		Use:     "config [key] [value]",
 		Aliases: []string{"c"},
 		Short:   "Set yoda configuration environment",
-		Args:    cobra.ExactArgs(2),
+		Args:    cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			viper.Set(args[0], args[1])
+			values := args[1:]
+
+			for _, value := range values {
+				viper.Set(args[0], value)
+			}
 			return viper.WriteConfig()
 		},
 	}

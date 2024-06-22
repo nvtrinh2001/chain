@@ -25,6 +25,7 @@ func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 		k.OracleRewardPercentage(ctx),
 		k.InactivePenaltyDuration(ctx),
 		k.IBCRequestEnabled(ctx),
+		k.BaseOffchainFeePerHour(ctx),
 	)
 }
 
@@ -91,6 +92,11 @@ func (k Keeper) OracleRewardPercentage(ctx sdk.Context) (res uint64) {
 // re-activate as oracle provider
 func (k Keeper) InactivePenaltyDuration(ctx sdk.Context) (res uint64) {
 	k.paramstore.Get(ctx, types.KeyInactivePenaltyDuration, &res)
+	return
+}
+
+func (k Keeper) BaseOffchainFeePerHour(ctx sdk.Context) (res uint64) {
+	k.paramstore.Get(ctx, types.BaseOffchainFeePerHour, &res)
 	return
 }
 
