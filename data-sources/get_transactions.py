@@ -2,7 +2,6 @@ import sys
 from web3 import Web3
 import pandas as pd
 import json
-from decimal import Decimal
 
 # Function to get transactions for a given block range
 def get_transactions(rpc, start_block, end_block):

@@ -6,7 +6,7 @@ bandd tx oracle create-data-source --name get-transactions --description "get tr
 
 sleep 5
 
-bandd tx oracle create-oracle-script --name gettransactions --description hello --script ~/ddap/ddap/oracle-scripts/get_transactions/target/wasm32-unknown-unknown/release/get_transactions.wasm --owner band1m5lq9u533qaya4q3nfyl6ulzqkpkhge9q8tpzs --schema '{rpc:string,start_block:u64,end_block:u64}/{response:string}' --url test.org --node http://127.0.0.1:26657 --chain-id bandchain --from band1m5lq9u533qaya4q3nfyl6ulzqkpkhge9q8tpzs --keyring-backend test --gas 300000 --keyring-dir ~/.band1
+bandd tx oracle create-oracle-script --name gettransactions --description hello --script ~/ddap/oracle-scripts/get_transactions/target/wasm32-unknown-unknown/release/get_transactions.wasm --owner band1m5lq9u533qaya4q3nfyl6ulzqkpkhge9q8tpzs --schema '{rpc:string,start_block:u64,end_block:u64}/{response:string}' --url test.org --node http://127.0.0.1:26657 --chain-id bandchain --from band1m5lq9u533qaya4q3nfyl6ulzqkpkhge9q8tpzs --keyring-backend test --gas 300000 --keyring-dir ~/.band1
 
 sleep 5
 
