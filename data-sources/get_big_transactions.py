@@ -45,7 +45,7 @@ def analyze_transactions(transactions):
     results = {
         "total_ether_transferred": total_ether_transferred,
         "top_senders": top_senders.reset_index().rename(columns={'from': 'sender', 'value': 'total_amount'}).to_dict(orient='records'),
-        # "transactions": df.to_dict(orient='records')
+        "transactions": df.to_dict(orient='records')
     }
 
     return json.dumps(results, indent=4)  # Convert results dict to JSON string with indentation

@@ -11,5 +11,5 @@ bandd tx oracle create-oracle-script --name gettransactions --description hello 
 sleep 5
 
 # 10 blocks
-bandd tx oracle request 1 2 2 --calldata "0000001368747470733a2f2f317270632e696f2f65746800000000000f423600000000000f4240" --node http://127.0.0.1:26657 --client-id "my-client" --fee-limit 100000000000uband --offchain-fee-limit 400000000000uband --from requester2 --chain-id bandchain --keyring-backend test --gas 3000000 --keyring-dir ~/.band1
+bandd tx oracle request 1 2 2 --calldata "0000002368747470733a2f2f657468657265756d2d7270632e7075626c69636e6f64652e636f6d00000000000f423600000000000f4240" --node http://127.0.0.1:26657 --client-id "my-client" --fee-limit 100000000000uband --offchain-fee-limit 400000000000uband --from requester2 --chain-id bandchain --keyring-backend test --gas 3000000 --keyring-dir ~/.band1
 
