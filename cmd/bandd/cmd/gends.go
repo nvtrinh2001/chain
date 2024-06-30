@@ -25,7 +25,7 @@ func AddGenesisDataSourceCmd(defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-data-source [name] [description] [owner] [filepath] [fee] [treasury] [requirement-file-id]",
 		Short: "Add a data source to genesis.json",
-		Args:  cobra.ExactArgs(7),
+		Args:  cobra.ExactArgs(9),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			cdc := clientCtx.Codec
@@ -69,7 +69,7 @@ func AddGenesisDataSourceCmd(defaultNodeHome string) *cobra.Command {
 			requirementFileId := uint64(requirementFileIdInt)
 
 			oracleGenState.DataSources = append(oracleGenState.DataSources, types.NewDataSource(
-				owner, args[0], args[1], filename, fee, treasury, requirementFileId,
+				owner, args[0], args[1], filename, fee, treasury, requirementFileId, args[7], args[8],
 			))
 			oracleGenStateBz, err := cdc.MarshalJSON(oracleGenState)
 

@@ -128,6 +128,9 @@ message MsgCreateDataSource {
   string sender = 7;
 
   uint64 requirement_file_id = 8;
+
+  string language = 9;
+  string used_external_libraries = 10; // "yes", "no"
 }
 
 // MsgCreateDataSourceResponse is response data for MsgCreateDataSource message
@@ -195,6 +198,9 @@ message MsgEditDataSource {
   string sender = 8;
 
   uint64 requirement_file_id = 9;
+
+  string language = 10;
+  string used_external_libraries = 11; // "yes", "no"
 }
 
 // MsgEditDataSourceResponse is response data for MsgEditDataSource message

@@ -56,6 +56,9 @@ func (k Keeper) MustEditDataSource(ctx sdk.Context, id types.DataSourceID, new t
 	dataSource.Filename = modify(dataSource.Filename, new.Filename)
 	dataSource.Treasury = new.Treasury
 	dataSource.Fee = new.Fee
+	dataSource.UsedExternalLibraries = new.UsedExternalLibraries
+	dataSource.Language = new.Language
+	dataSource.RequirementFileId = new.RequirementFileId
 	k.SetDataSource(ctx, id, dataSource)
 }
 

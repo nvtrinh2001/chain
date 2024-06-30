@@ -6,7 +6,7 @@ import (
 
 const (
 	// ModuleName is the name of the module.
-	ModuleName = "guardian"
+	ModuleName = "feelocker"
 
 	// StoreKey to be used when creating the KVStore.
 	StoreKey = ModuleName
@@ -22,12 +22,12 @@ var (
 	// GlobalStoreKeyPrefix is the prefix for global primitive state variables.
 	GlobalStoreKeyPrefix = []byte{0x00}
 
-	GuardedFeeCountStoreKey = append(GlobalStoreKeyPrefix, []byte("GuardedFeeCount")...)
+	LockedFeeCountStoreKey = append(GlobalStoreKeyPrefix, []byte("GuardedFeeCount")...)
 
-	GuardedFeeStoreKeyPrefix = []byte{0x07}
+	LockedFeeStoreKeyPrefix = []byte{0x07}
 )
 
-// GuardedFeeStoreKey returns the key to retrieve a specific guarded fee from the store.
-func GuardedFeeStoreKey(id GuardedFeeID) []byte {
-	return append(GuardedFeeStoreKeyPrefix, sdk.Uint64ToBigEndian(uint64(id))...)
+// LockedFeeStoreKey returns the key to retrieve a specific guarded fee from the store.
+func LockedFeeStoreKey(id LockedFeeID) []byte {
+	return append(LockedFeeStoreKeyPrefix, sdk.Uint64ToBigEndian(uint64(id))...)
 }

@@ -30,6 +30,8 @@ message DataSource {
   ];
 
   uint64 requirement_file_id = 7;
+  string language = 8;
+  string used_external_libraries = 9; // "yes", "no"
 }
 
 // RequirementFile is the data structure for storing data sources in the
@@ -116,6 +118,9 @@ message RawReport {
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
+
+  string installation_time = 5;
+  string execution_time = 6;
 }
 
 // Request is the data structure for storing requests in the storage.

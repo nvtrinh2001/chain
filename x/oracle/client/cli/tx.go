@@ -19,22 +19,24 @@ import (
 )
 
 const (
-	flagName              = "name"
-	flagDescription       = "description"
-	flagScript            = "script"
-	flagOwner             = "owner"
-	flagCalldata          = "calldata"
-	flagClientID          = "client-id"
-	flagSchema            = "schema"
-	flagSourceCodeURL     = "url"
-	flagPrepareGas        = "prepare-gas"
-	flagExecuteGas        = "execute-gas"
-	flagFeeLimit          = "fee-limit"
-	flagFee               = "fee"
-	flagRequirementFileId = "requirement-file-id"
-	flagTreasury          = "treasury"
-	flagExpiration        = "expiration"
-	flagOffchainFeeLimit  = "offchain-fee-limit"
+	flagName                  = "name"
+	flagDescription           = "description"
+	flagScript                = "script"
+	flagOwner                 = "owner"
+	flagCalldata              = "calldata"
+	flagClientID              = "client-id"
+	flagSchema                = "schema"
+	flagSourceCodeURL         = "url"
+	flagPrepareGas            = "prepare-gas"
+	flagExecuteGas            = "execute-gas"
+	flagFeeLimit              = "fee-limit"
+	flagFee                   = "fee"
+	flagRequirementFileId     = "requirement-file-id"
+	flagTreasury              = "treasury"
+	flagExpiration            = "expiration"
+	flagOffchainFeeLimit      = "offchain-fee-limit"
+	flagLanguage              = "language"
+	flagUsedExternalLibraries = "used-external-libraries"
 )
 
 // NewTxCmd returns the transaction commands for this module
@@ -229,10 +231,21 @@ $ %s tx oracle create-data-source --name coingecko-price --description "The scri
 				return err
 			}
 
+			language, err := cmd.Flags().GetString(flagLanguage)
+			if err != nil {
+				return err
+			}
+
+			usedExternalLibraries, err := cmd.Flags().GetString(flagUsedExternalLibraries)
+			if err != nil {
+				return err
+			}
+
 			treasuryStr, err := cmd.Flags().GetString(flagTreasury)
 			if err != nil {
 				return err
 			}
+
 			treasury, err := sdk.AccAddressFromBech32(treasuryStr)
 			if err != nil {
 				return err
@@ -252,6 +265,8 @@ $ %s tx oracle create-data-source --name coingecko-price --description "The scri
 				owner,
 				clientCtx.GetFromAddress(),
 				requirementFileId,
+				language,
+				usedExternalLibraries,
 			)
 
 			err = msg.ValidateBasic()
@@ -268,6 +283,8 @@ $ %s tx oracle create-data-source --name coingecko-price --description "The scri
 	cmd.Flags().String(flagOwner, "", "Owner of this data source")
 	cmd.Flags().String(flagTreasury, "", "Treasury of this data source")
 	cmd.Flags().String(flagFee, "", "Fee of this data source")
+	cmd.Flags().String(flagLanguage, "", "Language of data source")
+	cmd.Flags().String(flagUsedExternalLibraries, "", "if data source using external libs or not")
 	cmd.Flags().Uint64(flagRequirementFileId, 0, "requirement file id for this data source")
 	flags.AddTxFlagsToCmd(cmd)
 
@@ -417,6 +434,16 @@ $ %s tx oracle edit-data-source 1 --name coingecko-price --description The scrip
 				}
 			}
 
+			language, err := cmd.Flags().GetString(flagLanguage)
+			if err != nil {
+				return err
+			}
+
+			usedExternalLibraries, err := cmd.Flags().GetString(flagUsedExternalLibraries)
+			if err != nil {
+				return err
+			}
+
 			ownerStr, err := cmd.Flags().GetString(flagOwner)
 			if err != nil {
 				return err
@@ -459,6 +486,8 @@ $ %s tx oracle edit-data-source 1 --name coingecko-price --description The scrip
 				owner,
 				clientCtx.GetFromAddress(),
 				requirementFileId,
+				language,
+				usedExternalLibraries,
 			)
 
 			err = msg.ValidateBasic()
@@ -474,6 +503,8 @@ $ %s tx oracle edit-data-source 1 --name coingecko-price --description The scrip
 	cmd.Flags().String(flagScript, types.DoNotModify, "Path to this data source script")
 	cmd.Flags().String(flagTreasury, "", "Treasury of this data source")
 	cmd.Flags().String(flagFee, "", "Fee of this data source")
+	cmd.Flags().String(flagLanguage, "", "Language of data source")
+	cmd.Flags().String(flagUsedExternalLibraries, "", "if data source using external libs or not")
 	cmd.Flags().String(flagOwner, "", "Owner of this data source")
 	cmd.Flags().Uint64(flagRequirementFileId, 0, "Requirement file id of this data source")
 	flags.AddTxFlagsToCmd(cmd)

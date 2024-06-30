@@ -8,29 +8,29 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 
-	"github.com/bandprotocol/chain/v2/x/guardian/types"
+	"github.com/bandprotocol/chain/v2/x/feelocker/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module.
 func GetQueryCmd() *cobra.Command {
-	guardianCmd := &cobra.Command{
+	feeLockerCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "Querying commands for the guardian module",
+		Short:                      "Querying commands for the feelocker module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-	guardianCmd.AddCommand(
-		GetQueryCmdGuardedFee(),
-		GetQueryCmdGuardedFeeList(),
+	feeLockerCmd.AddCommand(
+		GetQueryCmdLockedFee(),
+		GetQueryCmdLockedFeeList(),
 	)
-	return guardianCmd
+	return feeLockerCmd
 }
 
-func GetQueryCmdGuardedFee() *cobra.Command {
+func GetQueryCmdLockedFee() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "guarded-fee [id]",
-		Short: "Get summary information of a guarded fee",
+		Use:   "locked-fee [id]",
+		Short: "Get summary information of a locked fee",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -42,7 +42,7 @@ func GetQueryCmdGuardedFee() *cobra.Command {
 				return err
 			}
 			queryClient := types.NewQueryClient(clientCtx)
-			r, err := queryClient.QueryGuardedFee(context.Background(), &types.QueryGuardedFeeRequest{GuardedFeeId: id})
+			r, err := queryClient.QueryLockedFee(context.Background(), &types.QueryLockedFeeRequest{LockedFeeId: id})
 			if err != nil {
 				return err
 			}
@@ -55,7 +55,7 @@ func GetQueryCmdGuardedFee() *cobra.Command {
 	return cmd
 }
 
-func GetQueryCmdGuardedFeeList() *cobra.Command {
+func GetQueryCmdLockedFeeList() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "guarded-fee-list [account-address] --status [locked|claimable|claimed]",
 		Short: "Get summary information of a guarded fee list based on an account address",
@@ -82,7 +82,7 @@ func GetQueryCmdGuardedFeeList() *cobra.Command {
 			}
 
 			queryClient := types.NewQueryClient(clientCtx)
-			r, err := queryClient.QueryGuardedFeeList(context.Background(), &types.QueryGuardedFeeListRequest{AccountAddress: args[0], Status: status})
+			r, err := queryClient.QueryLockedFeeList(context.Background(), &types.QueryLockedFeeListRequest{AccountAddress: args[0], Status: status})
 			if err != nil {
 				return err
 			}

@@ -132,7 +132,7 @@ func (k Keeper) PrepareRequest(
 		accAddr, _ := sdk.AccAddressFromHex(hex.EncodeToString(val.Bytes()))
 		valAccountAddr = append(valAccountAddr, accAddr.String())
 	}
-	err = k.guardianKeeper.Lock(ctx, feePayer.String(), valAccountAddr, r.GetOffchainFeeLimit())
+	err = k.feelockerKeeper.Lock(ctx, feePayer.String(), valAccountAddr, r.GetOffchainFeeLimit())
 	if err != nil {
 		return 0, err
 	}
@@ -183,6 +183,8 @@ func (k Keeper) PrepareRequest(
 			sdk.NewAttribute(types.AttributeKeyRequirementFileHash, requirementFile.Filename),
 			sdk.NewAttribute(types.AttributeOffchainFeeLimit, r.GetOffchainFeeLimit().String()),
 			sdk.NewAttribute(types.AttributeBaseOffchainFeePerHour, fmt.Sprintf("%d", k.BaseOffchainFeePerHour(ctx))),
+			sdk.NewAttribute(types.AttributeKeyLanguage, ds.Language),
+			sdk.NewAttribute(types.AttributeKeyUsedExternalLibraries, ds.UsedExternalLibraries),
 		))
 	}
 
@@ -219,7 +221,7 @@ func (k Keeper) ResolveRequest(ctx sdk.Context, reqID types.RequestID) {
 		}
 
 		for _, val := range valList {
-			_ = k.guardianKeeper.Claim(ctx, val.String(), uint64(reqID), feeUsed)
+			_ = k.feelockerKeeper.Claim(ctx, val.String(), uint64(reqID), feeUsed)
 		}
 
 	}

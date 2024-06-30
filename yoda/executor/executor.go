@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	flagQueryTimeout = "timeout"
+	flagQueryTimeout  = "timeout"
+	flagQueryLanguage = "lang"
 )
 
 var (
@@ -18,15 +19,18 @@ var (
 )
 
 type ExecResult struct {
-	Output          []byte
-	Code            uint32
-	OffchainFeeUsed string
-	Version         string
+	Output           []byte
+	Code             uint32
+	OffchainFeeUsed  string
+	Version          string
+	InstallationTime string
+	ExecutionTime    string
 }
 
 type Executor interface {
-	Exec(baseOffchainFeePerHour uint64, requirementFile []byte, exec []byte, arg string, env interface{}) (ExecResult, error)
+	Exec(usedExternalLibraries string, baseOffchainFeePerHour uint64, requirementFile []byte, exec []byte, arg string, env interface{}) (ExecResult, error)
 	SetTimeout(baseOffchainFeePerHour uint64, amt uint64)
+	GetLanguage() string
 }
 
 var testProgram []byte = []byte(
@@ -43,13 +47,13 @@ func NewExecutors(executorsStr string) ([]Executor, error) {
 	executors := strings.Split(executorsStr, ",")
 
 	for _, executor := range executors {
-		name, base, timeout, err := parseExecutor(executor)
+		name, base, timeout, language, err := parseExecutor(executor)
 		if err != nil {
 			return nil, err
 		}
 		switch name {
 		case "rest":
-			exec := NewRestExec(base, timeout)
+			exec := NewRestExec(base, timeout, language)
 			execs = append(execs, exec)
 		case "docker":
 			return nil, fmt.Errorf("Docker executor is currently not supported")
@@ -81,28 +85,34 @@ func NewExecutors(executorsStr string) ([]Executor, error) {
 }
 
 // parseExecutor splits the executor string in the form of "name:base?timeout=" into parts.
-func parseExecutor(executorStr string) (name string, base string, timeout time.Duration, err error) {
+func parseExecutor(executorStr string) (name string, base string, timeout time.Duration, language string, err error) {
 	executor := strings.SplitN(executorStr, ":", 2)
 	if len(executor) != 2 {
-		return "", "", 0, fmt.Errorf("Invalid executor, cannot parse executor: %s", executorStr)
+		return "", "", 0, "", fmt.Errorf("Invalid executor, cannot parse executor: %s", executorStr)
 	}
 	u, err := url.Parse(executor[1])
 	if err != nil {
-		return "", "", 0, fmt.Errorf("Invalid url, cannot parse %s to url with error: %s", executor[1], err.Error())
+		return "", "", 0, "", fmt.Errorf("Invalid url, cannot parse %s to url with error: %s", executor[1], err.Error())
 	}
 
 	query := u.Query()
 	timeoutStr := query.Get(flagQueryTimeout)
 	if timeoutStr == "" {
-		return "", "", 0, fmt.Errorf("Invalid timeout, executor requires query timeout")
+		return "", "", 0, "", fmt.Errorf("Invalid timeout, executor requires query timeout")
+	}
+
+	language = query.Get(flagQueryLanguage)
+	if language == "" {
+		language = "python"
 	}
 	// Remove timeout from query because we need to return `base`
 	query.Del(flagQueryTimeout)
+	query.Del(flagQueryLanguage)
 	u.RawQuery = query.Encode()
 
 	timeout, err = time.ParseDuration(timeoutStr)
 	if err != nil {
-		return "", "", 0, fmt.Errorf("Invalid timeout, cannot parse duration with error: %s", err.Error())
+		return "", "", 0, "", fmt.Errorf("Invalid timeout, cannot parse duration with error: %s", err.Error())
 	}
-	return executor[0], u.String(), timeout, nil
+	return executor[0], u.String(), timeout, language, nil
 }

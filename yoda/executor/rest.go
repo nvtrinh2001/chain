@@ -11,25 +11,28 @@ import (
 )
 
 type RestExec struct {
-	url     string
-	timeout time.Duration
+	url      string
+	timeout  time.Duration
+	language string
 }
 
-func NewRestExec(url string, timeoutFromYoda time.Duration) *RestExec {
+func NewRestExec(url string, timeoutFromYoda time.Duration, language string) *RestExec {
 	//timeout := timeoutFromRequest
 	//if timeoutFromYoda < timeoutFromRequest {
 	//	timeout = timeoutFromYoda
 	//}
-	return &RestExec{url: url, timeout: timeoutFromYoda}
+	return &RestExec{url: url, timeout: timeoutFromYoda, language: language}
 }
 
 type externalExecutionResponse struct {
-	Returncode uint32 `json:"returncode"`
-	Stdout     string `json:"stdout"`
-	Stderr     string `json:"stderr"`
-	Duration   string `json:"duration"`
-	Version    string `json:"version"`
-	Error      string `json:"err"`
+	Returncode       uint32 `json:"returncode"`
+	Stdout           string `json:"stdout"`
+	Stderr           string `json:"stderr"`
+	Duration         string `json:"duration"`
+	Version          string `json:"version"`
+	Error            string `json:"err"`
+	InstallationTime string `json:"installation-time"`
+	ExecutionTime    string `json:"execution-time"`
 }
 
 func (e *RestExec) SetTimeout(baseOffchainFeePerHour uint64, amt uint64) {
@@ -39,7 +42,14 @@ func (e *RestExec) SetTimeout(baseOffchainFeePerHour uint64, amt uint64) {
 	}
 }
 
-func (e *RestExec) Exec(baseOffchainFeePerHour uint64, requirementFile []byte, code []byte, arg string, env interface{}) (ExecResult, error) {
+func (e *RestExec) GetLanguage() string {
+	return e.language
+}
+
+func (e *RestExec) Exec(
+	usedExternalLibraries string, baseOffchainFeePerHour uint64,
+	requirementFile []byte, code []byte, arg string, env interface{},
+) (ExecResult, error) {
 	executable := base64.StdEncoding.EncodeToString(code)
 	resp, err := grequests.Post(
 		e.url,
@@ -48,11 +58,12 @@ func (e *RestExec) Exec(baseOffchainFeePerHour uint64, requirementFile []byte, c
 				"Content-Type": "application/json",
 			},
 			JSON: map[string]interface{}{
-				"requirement-file": requirementFile,
-				"executable":       executable,
-				"calldata":         arg,
-				"timeout":          e.timeout.Milliseconds(),
-				"env":              env,
+				"used-external-libraries": usedExternalLibraries,
+				"requirement-file":        requirementFile,
+				"executable":              executable,
+				"calldata":                arg,
+				"timeout":                 e.timeout.Milliseconds(),
+				"env":                     env,
 			},
 			RequestTimeout: e.timeout,
 		},
@@ -90,8 +101,13 @@ func (e *RestExec) Exec(baseOffchainFeePerHour uint64, requirementFile []byte, c
 	offchainFeeUsedStr := fmt.Sprintf("%suband", strconv.FormatUint(uint64(offchainFeeUsed), 10))
 
 	if r.Returncode == 0 {
-		return ExecResult{Output: []byte(r.Stdout), OffchainFeeUsed: offchainFeeUsedStr, Code: 0, Version: r.Version}, nil
+		return ExecResult{
+			InstallationTime: r.InstallationTime, ExecutionTime: r.ExecutionTime,
+			Output: []byte(r.Stdout), OffchainFeeUsed: offchainFeeUsedStr, Code: 0, Version: r.Version,
+		}, nil
 	} else {
-		return ExecResult{Output: []byte(r.Stderr), OffchainFeeUsed: offchainFeeUsedStr, Code: r.Returncode, Version: r.Version}, nil
+		return ExecResult{InstallationTime: r.InstallationTime, ExecutionTime: r.ExecutionTime,
+			Output: []byte(r.Stderr), OffchainFeeUsed: offchainFeeUsedStr, Code: r.Returncode, Version: r.Version,
+		}, nil
 	}
 }

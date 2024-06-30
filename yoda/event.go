@@ -18,6 +18,8 @@ type rawRequest struct {
 	requirementFileHash    string
 	offlineFeeLimit        sdk.Coins
 	baseOffchainFeePerHour uint64
+	language               string
+	usedExternalLibraries  string
 }
 
 // GetRawRequests returns the list of all raw data requests in the given log.
@@ -30,6 +32,8 @@ func GetRawRequests(log sdk.ABCIMessageLog) ([]rawRequest, error) {
 	requirementFileHashList := GetEventValues(log, types.EventTypeRawRequest, types.AttributeKeyRequirementFileHash)
 	offlineFeeLimitList := GetEventValues(log, types.EventTypeRawRequest, types.AttributeOffchainFeeLimit)
 	baseOffchainFeePerHourList := GetEventValues(log, types.EventTypeRawRequest, types.AttributeBaseOffchainFeePerHour)
+	languageList := GetEventValues(log, types.EventTypeRawRequest, types.AttributeKeyLanguage)
+	usedExternalLibraryList := GetEventValues(log, types.EventTypeRawRequest, types.AttributeKeyUsedExternalLibraries)
 
 	if len(dataSourceIDs) != len(externalIDs) {
 		return nil, fmt.Errorf("Inconsistent data source count and external ID count")
@@ -65,6 +69,9 @@ func GetRawRequests(log sdk.ABCIMessageLog) ([]rawRequest, error) {
 			return nil, err
 		}
 
+		language := languageList[idx]
+		usedExternalLibraries := usedExternalLibraryList[idx]
+
 		reqs = append(reqs, rawRequest{
 			dataSourceID:           types.DataSourceID(dataSourceID),
 			dataSourceHash:         dataSourceHashList[idx],
@@ -74,6 +81,8 @@ func GetRawRequests(log sdk.ABCIMessageLog) ([]rawRequest, error) {
 			requirementFileHash:    requirementFileHashList[idx],
 			offlineFeeLimit:        offlineFeeLimit,
 			baseOffchainFeePerHour: uint64(baseOffchainFeePerHour),
+			language:               language,
+			usedExternalLibraries:  usedExternalLibraries,
 		})
 	}
 	return reqs, nil

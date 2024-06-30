@@ -1,4 +1,4 @@
-package guardian
+package feelocker
 
 import (
 	"context"
@@ -16,9 +16,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/bandprotocol/chain/v2/x/guardian/client/cli"
-	"github.com/bandprotocol/chain/v2/x/guardian/keeper"
-	"github.com/bandprotocol/chain/v2/x/guardian/types"
+	"github.com/bandprotocol/chain/v2/x/feelocker/client/cli"
+	"github.com/bandprotocol/chain/v2/x/feelocker/keeper"
+	"github.com/bandprotocol/chain/v2/x/feelocker/types"
 )
 
 var (

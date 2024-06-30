@@ -1,10 +1,10 @@
 syntax = "proto3";
 package guardian.v1;
 
-option go_package = "github.com/bandprotocol/chain/x/guardian/types";
+option go_package = "github.com/bandprotocol/chain/x/feelocker/types";
 
 import "gogoproto/gogo.proto";
-import "guardian/v1/guardian.proto";
+import "feelocker/v1/feelocker.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
 service Msg {
@@ -30,9 +30,9 @@ message MsgClaimRequest {
   option (gogoproto.equal) = true;
 
   string payee = 1;
-  uint64 guarded_fee_id = 2 [
-    (gogoproto.customname) = "GuardedFeeID",
-    (gogoproto.casttype) = "GuardedFeeID"
+  uint64 locked_fee_id = 2 [
+    (gogoproto.customname) = "LockedFeeID",
+    (gogoproto.casttype) = "LockedFeeID"
   ];
 }
 

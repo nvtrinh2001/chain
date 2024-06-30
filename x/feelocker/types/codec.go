@@ -11,8 +11,8 @@ import (
 // RegisterLegacyAminoCodec registers the necessary x/oracle interfaces and concrete types
 // on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgLockRequest{}, "guardian/Lock", nil)
-	cdc.RegisterConcrete(&MsgClaimRequest{}, "guardian/Claim", nil)
+	cdc.RegisterConcrete(&MsgLockRequest{}, "feelocker/Lock", nil)
+	cdc.RegisterConcrete(&MsgClaimRequest{}, "feelocker/Claim", nil)
 }
 
 // RegisterInterfaces register the oracle module interfaces to protobuf Any.

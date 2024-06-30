@@ -1,0 +1,34 @@
+syntax = "proto3";
+package guardian.v1;
+
+option go_package = "github.com/bandprotocol/chain/x/feelocker/types";
+
+import "google/api/annotations.proto";
+import "feelocker/v1/feelocker.proto";
+
+// Query defines the gRPC querier service.
+service Query {
+  rpc QueryLockedFeeList(QueryLockedFeeListRequest) returns (QueryLockedFeeListResponse) {
+    option (google.api.http).get = "/feelocker/v1/locked_fees/{account_address}/{status}";
+  }
+  rpc QueryLockedFee(QueryLockedFeeRequest) returns (QueryLockedFeeResponse) {
+    option (google.api.http).get = "/feelocker/v1/locked_fees/{locked_fee_id}";
+  }
+}
+
+message QueryLockedFeeRequest {
+  uint64 locked_fee_id = 1;
+}
+
+message QueryLockedFeeResponse {
+  LockedFee locked_fee = 1;
+}
+
+message QueryLockedFeeListRequest {
+  string account_address = 1;
+  STATUS status = 2;
+}
+
+message QueryLockedFeeListResponse {
+  repeated LockedFee locked_fees = 1;
+}

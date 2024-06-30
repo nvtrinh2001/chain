@@ -148,7 +148,8 @@ func (k msgServer) CreateDataSource(
 	}
 
 	id := k.AddDataSource(ctx, types.NewDataSource(
-		owner, msg.Name, msg.Description, k.AddExecutableFile(msg.Executable), msg.Fee, treasury, msg.RequirementFileId,
+		owner, msg.Name, msg.Description, k.AddExecutableFile(msg.Executable), msg.Fee, treasury,
+		msg.RequirementFileId, msg.Language, msg.UsedExternalLibraries,
 	))
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -205,7 +206,8 @@ func (k msgServer) EditDataSource(
 
 	// Can safely use MustEdit here, as we already checked that the data source exists above.
 	k.MustEditDataSource(ctx, msg.DataSourceID, types.NewDataSource(
-		newOwner, msg.Name, msg.Description, k.AddExecutableFile(msg.Executable), msg.Fee, treasury, msg.RequirementFileId,
+		newOwner, msg.Name, msg.Description, k.AddExecutableFile(msg.Executable),
+		msg.Fee, treasury, msg.RequirementFileId, msg.Language, msg.UsedExternalLibraries,
 	))
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(

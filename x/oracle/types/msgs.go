@@ -163,17 +163,19 @@ func (msg MsgReportData) GetSignBytes() []byte {
 
 // NewMsgCreateDataSource creates a new MsgCreateDataSource instance
 func NewMsgCreateDataSource(
-	name, description string, executable []byte, fee sdk.Coins, treasury, owner, sender sdk.AccAddress, id uint64,
+	name, description string, executable []byte, fee sdk.Coins, treasury, owner, sender sdk.AccAddress, id uint64, language string, usedExternalLibraries string,
 ) *MsgCreateDataSource {
 	return &MsgCreateDataSource{
-		Name:              name,
-		Description:       description,
-		Executable:        executable,
-		Fee:               fee,
-		Treasury:          treasury.String(),
-		Owner:             owner.String(),
-		Sender:            sender.String(),
-		RequirementFileId: id,
+		Name:                  name,
+		Description:           description,
+		Executable:            executable,
+		Fee:                   fee,
+		Treasury:              treasury.String(),
+		Owner:                 owner.String(),
+		Sender:                sender.String(),
+		RequirementFileId:     id,
+		Language:              language,
+		UsedExternalLibraries: usedExternalLibraries,
 	}
 }
 
@@ -322,17 +324,21 @@ func NewMsgEditDataSource(
 	executable []byte,
 	fee sdk.Coins,
 	treasury, owner, sender sdk.AccAddress, id uint64,
+	language string,
+	usedExternalLibraries string,
 ) *MsgEditDataSource {
 	return &MsgEditDataSource{
-		DataSourceID:      dataSourceID,
-		Name:              name,
-		Description:       description,
-		Executable:        executable,
-		Fee:               fee,
-		Treasury:          treasury.String(),
-		Owner:             owner.String(),
-		Sender:            sender.String(),
-		RequirementFileId: id,
+		DataSourceID:          dataSourceID,
+		Name:                  name,
+		Description:           description,
+		Executable:            executable,
+		Fee:                   fee,
+		Treasury:              treasury.String(),
+		Owner:                 owner.String(),
+		Sender:                sender.String(),
+		RequirementFileId:     id,
+		Language:              language,
+		UsedExternalLibraries: usedExternalLibraries,
 	}
 }
 

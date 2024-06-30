@@ -104,9 +104,9 @@ import (
 	bandclient "github.com/bandprotocol/chain/v2/client"
 	bandbank "github.com/bandprotocol/chain/v2/x/bank"
 	bandbankkeeper "github.com/bandprotocol/chain/v2/x/bank/keeper"
-	"github.com/bandprotocol/chain/v2/x/guardian"
-	guardiankeeper "github.com/bandprotocol/chain/v2/x/guardian/keeper"
-	guardiantypes "github.com/bandprotocol/chain/v2/x/guardian/types"
+	"github.com/bandprotocol/chain/v2/x/feelocker"
+	guardiankeeper "github.com/bandprotocol/chain/v2/x/feelocker/keeper"
+	guardiantypes "github.com/bandprotocol/chain/v2/x/feelocker/types"
 	"github.com/bandprotocol/chain/v2/x/oracle"
 	bandante "github.com/bandprotocol/chain/v2/x/oracle/ante"
 	oraclekeeper "github.com/bandprotocol/chain/v2/x/oracle/keeper"
@@ -154,7 +154,7 @@ var (
 		vesting.AppModuleBasic{},
 		ica.AppModuleBasic{},
 		oracle.AppModuleBasic{},
-		guardian.AppModuleBasic{},
+		feelocker.AppModuleBasic{},
 	)
 	// module account permissions
 	maccPerms = map[string][]string{
@@ -426,7 +426,7 @@ func NewBandApp(
 		app.DistrKeeper,
 		app.AuthzKeeper,
 	)
-	guardianModule := guardian.NewAppModule(app.GuardianKeeper)
+	guardianModule := feelocker.NewAppModule(app.GuardianKeeper)
 
 	app.OracleKeeper = oraclekeeper.NewKeeper(
 		appCodec,

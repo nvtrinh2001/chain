@@ -31,7 +31,7 @@ type Keeper struct {
 	feeCollectorName string
 	paramstore       paramtypes.Subspace
 	owasmVM          *owasm.Vm
-	guardianKeeper   types.GuardianKeeper
+	feelockerKeeper  types.GuardianKeeper
 	authKeeper       types.AccountKeeper
 	bankKeeper       types.BankKeeper
 	stakingKeeper    types.StakingKeeper
@@ -68,7 +68,7 @@ func NewKeeper(
 		cdc:              cdc,
 		fileCache:        filecache.New(fileDir),
 		feeCollectorName: feeCollectorName,
-		guardianKeeper:   guardianKeeper,
+		feelockerKeeper:  guardianKeeper,
 		paramstore:       ps,
 		owasmVM:          owasmVM,
 		authKeeper:       authKeeper,

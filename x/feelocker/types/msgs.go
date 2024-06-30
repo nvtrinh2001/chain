@@ -68,11 +68,11 @@ func (msg MsgLockRequest) GetSignBytes() []byte {
 
 func NewMsgClaimRequest(
 	account sdk.AccAddress,
-	guardedFeeId GuardedFeeID,
+	lockedFeeId LockedFeeID,
 ) *MsgClaimRequest {
 
 	return &MsgClaimRequest{
-		account.String(), guardedFeeId,
+		account.String(), lockedFeeId,
 	}
 }
 

@@ -23,11 +23,15 @@ func NewRawReport(
 	ExitCode uint32,
 	Data []byte,
 	OffchainFeeUsed sdk.Coins,
+	installationTime string,
+	executionTime string,
 ) RawReport {
 	return RawReport{
-		ExternalID:      ExternalID,
-		ExitCode:        ExitCode,
-		Data:            Data,
-		OffchainFeeUsed: OffchainFeeUsed,
+		ExternalID:       ExternalID,
+		ExitCode:         ExitCode,
+		Data:             Data,
+		OffchainFeeUsed:  OffchainFeeUsed,
+		InstallationTime: installationTime,
+		ExecutionTime:    executionTime,
 	}
 }

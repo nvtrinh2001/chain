@@ -6,22 +6,22 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
 
-	"github.com/bandprotocol/chain/v2/x/guardian/types"
+	"github.com/bandprotocol/chain/v2/x/feelocker/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
-	flagPayees       = "payees"
-	flagFee          = "fee"
-	flagStatus       = "status"
-	flagGuardedFeeId = "guarded-fee-id"
+	flagPayees      = "payees"
+	flagFee         = "fee"
+	flagStatus      = "status"
+	flagLockedFeeId = "locked-fee-id"
 )
 
 // NewTxCmd returns the transaction commands for this module
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "guardian transaction subcommands",
+		Short:                      "feelocker transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -92,7 +92,7 @@ func GetCmdLock() *cobra.Command {
 // GetCmdClaim implements the lock command handler.
 func GetCmdClaim() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "claim --guarded-fee-id [id]",
+		Use:   "claim --lodked-fee-id [id]",
 		Short: "claim command",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -100,12 +100,12 @@ func GetCmdClaim() *cobra.Command {
 				return err
 			}
 
-			guardedFeeId, err := cmd.Flags().GetUint64(flagGuardedFeeId)
+			lockedFeeId, err := cmd.Flags().GetUint64(flagLockedFeeId)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgClaimRequest(clientCtx.GetFromAddress(), types.GuardedFeeID(guardedFeeId))
+			msg := types.NewMsgClaimRequest(clientCtx.GetFromAddress(), types.LockedFeeID(lockedFeeId))
 
 			err = msg.ValidateBasic()
 			if err != nil {
@@ -117,7 +117,7 @@ func GetCmdClaim() *cobra.Command {
 	}
 
 	// Add flags for payerAddress, payees, and fee
-	cmd.Flags().Uint64(flagGuardedFeeId, 0, "Guarded Fee ID")
+	cmd.Flags().Uint64(flagLockedFeeId, 0, "Guarded Fee ID")
 
 	flags.AddTxFlagsToCmd(cmd)
 

@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/bandprotocol/chain/v2/x/guardian/types"
+	"github.com/bandprotocol/chain/v2/x/feelocker/types"
 )
 
 type Keeper struct {
@@ -50,27 +50,27 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// SetGuardedFeeCount sets the number of guarded fee count to the given value.
-func (k Keeper) SetGuardedFeeCount(ctx sdk.Context, count uint64) {
+// SetLockedFeeCount sets the number of guarded fee count to the given value.
+func (k Keeper) SetLockedFeeCount(ctx sdk.Context, count uint64) {
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, count)
-	ctx.KVStore(k.storeKey).Set(types.GuardedFeeCountStoreKey, bz)
+	ctx.KVStore(k.storeKey).Set(types.LockedFeeCountStoreKey, bz)
 }
 
-// GetGuardedFeeCount returns the current number of all data sources ever exist.
-func (k Keeper) GetGuardedFeeCount(ctx sdk.Context) uint64 {
-	bz := ctx.KVStore(k.storeKey).Get(types.GuardedFeeCountStoreKey)
+// GetLockedFeeCount returns the current number of all data sources ever exist.
+func (k Keeper) GetLockedFeeCount(ctx sdk.Context) uint64 {
+	bz := ctx.KVStore(k.storeKey).Get(types.LockedFeeCountStoreKey)
 	if bz == nil {
 		return 0
 	}
 	return binary.BigEndian.Uint64(bz)
 }
 
-// GetNextGuardedFeeID increments and returns the current number of data sources.
-func (k Keeper) GetNextGuardedFeeID(ctx sdk.Context) types.GuardedFeeID {
-	guardedFeeCount := k.GetGuardedFeeCount(ctx)
-	k.SetGuardedFeeCount(ctx, guardedFeeCount+1)
-	return types.GuardedFeeID(guardedFeeCount + 1)
+// GetNextLockedFeeID increments and returns the current number of data sources.
+func (k Keeper) GetNextLockedFeeID(ctx sdk.Context) types.LockedFeeID {
+	lockedFeeCount := k.GetLockedFeeCount(ctx)
+	k.SetLockedFeeCount(ctx, lockedFeeCount+1)
+	return types.LockedFeeID(lockedFeeCount + 1)
 }
 
 func (k Keeper) Lock(ctx sdk.Context, fromAddr string, toAddrs []string, amt sdk.Coins) error {
@@ -106,7 +106,7 @@ func (k Keeper) Lock(ctx sdk.Context, fromAddr string, toAddrs []string, amt sdk
 		return err
 	}
 
-	id := k.AddGuardedFee(ctx, types.NewGuardedFee(
+	id := k.AddLockedFee(ctx, types.NewLockedFee(
 		payer, payeeList, amt,
 	))
 
@@ -124,17 +124,17 @@ func (k Keeper) Claim(ctx sdk.Context, toAddr string, id uint64, amt sdk.Coins) 
 		return err
 	}
 
-	guardedFee, err := k.GetGuardedFee(ctx, types.GuardedFeeID(id))
+	lockedFee, err := k.GetLockedFee(ctx, types.LockedFeeID(id))
 	if err != nil {
 		return err
 	}
 
-	if amt.IsAnyGT(guardedFee.Fee) {
+	if amt.IsAnyGT(lockedFee.Fee) {
 		return types.ErrInvalidAmount
 	}
 
 	check := 0
-	for _, feePayee := range guardedFee.Payees {
+	for _, feePayee := range lockedFee.Payees {
 		if feePayee.Payee != toAddr {
 			continue
 		}
@@ -157,12 +157,12 @@ func (k Keeper) Claim(ctx sdk.Context, toAddr string, id uint64, amt sdk.Coins) 
 		return err
 	}
 
-	remain, isNeg := guardedFee.Fee.SafeSub(amt)
+	remain, isNeg := lockedFee.Fee.SafeSub(amt)
 	if isNeg {
 		return types.ErrInvalidAmount
 	}
 
-	payer, err := sdk.AccAddressFromBech32(guardedFee.Payer)
+	payer, err := sdk.AccAddressFromBech32(lockedFee.Payer)
 	if err != nil {
 		return err
 	}
@@ -174,14 +174,14 @@ func (k Keeper) Claim(ctx sdk.Context, toAddr string, id uint64, amt sdk.Coins) 
 		return err
 	}
 
-	for i, payeeInFee := range guardedFee.Payees {
+	for i, payeeInFee := range lockedFee.Payees {
 		if payeeInFee.Payee == toAddr {
-			guardedFee.Payees[i].Status = types.STATUS_CLAIMED
+			lockedFee.Payees[i].Status = types.STATUS_CLAIMED
 			break
 		}
 	}
 
-	_ = k.UpdateGuardedFee(ctx, types.GuardedFeeID(id), guardedFee)
+	_ = k.UpdateLockedFee(ctx, types.LockedFeeID(id), lockedFee)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeClaim,

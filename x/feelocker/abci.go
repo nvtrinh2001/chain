@@ -1,10 +1,10 @@
-package guardian
+package feelocker
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/bandprotocol/chain/v2/x/guardian/keeper"
+	"github.com/bandprotocol/chain/v2/x/feelocker/keeper"
 )
 
 // handleBeginBlock re-calculates and saves the rolling seed value based on block hashes.

@@ -26,9 +26,9 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
 
+	guardiantypes "github.com/bandprotocol/chain/v2/x/feelocker/types"
 	v039oracle "github.com/bandprotocol/chain/v2/x/oracle/legacy/v039"
 	oracletypes "github.com/bandprotocol/chain/v2/x/oracle/types"
-	guardiantypes "github.com/bandprotocol/chain/v2/x/guardian/types"
 )
 
 const (

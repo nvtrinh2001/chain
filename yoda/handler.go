@@ -2,6 +2,7 @@ package yoda
 
 import (
 	"encoding/hex"
+	"github.com/bandprotocol/chain/v2/yoda/executor"
 	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -256,7 +257,7 @@ func handleRawRequest(
 		l.Error(":skull: Failed to load requirement file with error: %s", c, err.Error())
 		processingResultCh <- processingResult{
 			rawReport: types.NewRawReport(
-				req.externalID, 255, []byte("FAIL_TO_LOAD_REQUIREMENT_FILE"), nil,
+				req.externalID, 255, []byte("FAIL_TO_LOAD_REQUIREMENT_FILE"), nil, "", "",
 			),
 			err: err,
 		}
@@ -269,7 +270,7 @@ func handleRawRequest(
 		l.Error(":skull: Failed to load data source with error: %s", c, err.Error())
 		processingResultCh <- processingResult{
 			rawReport: types.NewRawReport(
-				req.externalID, 255, []byte("FAIL_TO_LOAD_DATA_SOURCE"), nil,
+				req.externalID, 255, []byte("FAIL_TO_LOAD_DATA_SOURCE"), nil, "", "",
 			),
 			err: err,
 		}
@@ -283,19 +284,34 @@ func handleRawRequest(
 	if err != nil {
 		l.Error(":skull: Failed to sign verify message: %s", c, err.Error())
 		processingResultCh <- processingResult{
-			rawReport: types.NewRawReport(req.externalID, 255, nil, nil),
+			rawReport: types.NewRawReport(req.externalID, 255, nil, nil, "", ""),
 			err:       err,
 		}
 		return
 	}
 
-	//c.mu.Lock()
-	c.executorIndex += 1
-	executor := c.executors[c.executorIndex%len(c.executors)]
+	var executorObj executor.Executor
+	for i, executorTemp := range c.executors {
+		//c.mu.Lock()
+		if executorTemp.GetLanguage() == req.language {
+			c.executorIndex += 1
+			executorObj = c.executors[c.executorIndex%len(c.executors)]
+			break
+		}
 
-	executor.SetTimeout(req.baseOffchainFeePerHour, req.offlineFeeLimit.AmountOf("uband").Uint64())
+		if i == len(c.executors)-1 {
+			l.Error(":skull: No runtime environment", c)
+			processingResultCh <- processingResult{
+				rawReport: types.NewRawReport(req.externalID, 255, nil, nil, "", ""),
+				err:       err,
+			}
+			return
+		}
+	}
 
-	result, err := executor.Exec(req.baseOffchainFeePerHour, requirementFile, exec, req.calldata, map[string]interface{}{
+	executorObj.SetTimeout(req.baseOffchainFeePerHour, req.offlineFeeLimit.AmountOf("uband").Uint64())
+
+	result, err := executorObj.Exec(req.usedExternalLibraries, req.baseOffchainFeePerHour, requirementFile, exec, req.calldata, map[string]interface{}{
 		"BAND_CHAIN_ID":       vmsg.ChainID,
 		"BAND_DATA_SOURCE_ID": strconv.Itoa(int(vmsg.DataSourceID)),
 		"BAND_VALIDATOR":      vmsg.Validator,
@@ -309,7 +325,7 @@ func handleRawRequest(
 	if err != nil {
 		l.Error(":skull: Failed to execute data source script: %s", c, err.Error())
 		processingResultCh <- processingResult{
-			rawReport: types.NewRawReport(req.externalID, 255, nil, nil),
+			rawReport: types.NewRawReport(req.externalID, 255, nil, nil, result.InstallationTime, result.ExecutionTime),
 			err:       err,
 		}
 		return
@@ -325,7 +341,7 @@ func handleRawRequest(
 		}
 
 		processingResultCh <- processingResult{
-			rawReport: types.NewRawReport(req.externalID, result.Code, result.Output, offchainFeeUsed),
+			rawReport: types.NewRawReport(req.externalID, result.Code, result.Output, offchainFeeUsed, result.InstallationTime, result.ExecutionTime),
 			version:   result.Version,
 		}
 	}

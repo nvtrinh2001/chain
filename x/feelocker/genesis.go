@@ -1,10 +1,10 @@
-package guardian
+package feelocker
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/bandprotocol/chain/v2/x/guardian/keeper"
-	"github.com/bandprotocol/chain/v2/x/guardian/types"
+	"github.com/bandprotocol/chain/v2/x/feelocker/keeper"
+	"github.com/bandprotocol/chain/v2/x/feelocker/types"
 )
 
 // InitGenesis performs genesis initialization for the oracle module.

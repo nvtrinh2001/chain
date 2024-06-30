@@ -3,7 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
-	"github.com/bandprotocol/chain/v2/x/guardian/types"
+	"github.com/bandprotocol/chain/v2/x/feelocker/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -54,7 +54,7 @@ func (k msgServer) Lock(goCtx context.Context, msg *types.MsgLockRequest) (*type
 		return nil, err
 	}
 
-	id := k.AddGuardedFee(ctx, types.NewGuardedFee(
+	id := k.AddLockedFee(ctx, types.NewLockedFee(
 		payer, payeeList, msg.Fee,
 	))
 
@@ -74,31 +74,31 @@ func (k msgServer) Claim(goCtx context.Context, msg *types.MsgClaimRequest) (*ty
 		return nil, err
 	}
 
-	guardedFee, err := k.GetGuardedFee(ctx, msg.GuardedFeeID)
+	lockedFee, err := k.GetLockedFee(ctx, msg.LockedFeeID)
 	if err != nil {
 		return nil, err
 	}
 
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(
-		ctx, k.feeCollectorName, payee, guardedFee.Fee,
+		ctx, k.feeCollectorName, payee, lockedFee.Fee,
 	)
 
 	if err != nil {
 		return nil, err
 	}
 
-	for i, payeeInFee := range guardedFee.Payees {
+	for i, payeeInFee := range lockedFee.Payees {
 		if payeeInFee.Payee == msg.Payee {
-			guardedFee.Payees[i].Status = types.STATUS_CLAIMED
+			lockedFee.Payees[i].Status = types.STATUS_CLAIMED
 			break
 		}
 	}
 
-	_ = k.UpdateGuardedFee(ctx, msg.GuardedFeeID, guardedFee)
+	_ = k.UpdateLockedFee(ctx, msg.LockedFeeID, lockedFee)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeClaim,
-		sdk.NewAttribute(types.AttributeKeyID, fmt.Sprintf("%d", msg.GuardedFeeID)),
+		sdk.NewAttribute(types.AttributeKeyID, fmt.Sprintf("%d", msg.LockedFeeID)),
 		sdk.NewAttribute(types.AttributeClaimedPayee, fmt.Sprintf("%v", msg.Payee)),
 	))
 

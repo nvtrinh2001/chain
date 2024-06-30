@@ -4,13 +4,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func NewGuardedFee(
+func NewLockedFee(
 	payer sdk.AccAddress, payees []sdk.AccAddress, fee sdk.Coins,
-) GuardedFee {
+) LockedFee {
 	var payeeList []*Payee
 	for _, payee := range payees {
 		payeeObj := Payee{Status: STATUS_CLAIMABLE, Payee: payee.String()}
 		payeeList = append(payeeList, &payeeObj)
 	}
-	return GuardedFee{payer.String(), payeeList, fee}
+	return LockedFee{payer.String(), payeeList, fee}
 }
